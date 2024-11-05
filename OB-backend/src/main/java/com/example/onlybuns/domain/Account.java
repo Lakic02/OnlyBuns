@@ -1,5 +1,6 @@
 package com.example.onlybuns.domain;
 
+
 import jakarta.persistence.*;
 
 @Entity
@@ -86,4 +87,5 @@ public class Account {
         registered,
         unauthenticated
     }
+
 }

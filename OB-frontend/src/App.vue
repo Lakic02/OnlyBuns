@@ -9,6 +9,9 @@
           <router-link to="/Registration">Registration</router-link>
         </div>
         <div class="nav-links nav-secondary">
+          <router-link to="/CreatePost">Create Post</router-link>
+        </div>
+        <div class="nav-links nav-secondary">
           <div class="header-user-info">
             <router-link class="userLogo" to="/User">
               <img src="../src/images/logos/user.png" alt="User logo" width="50px" height="50">
