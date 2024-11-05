@@ -18,5 +18,6 @@ public class AuthenticationController {
         authenticationService.registerAccount(acc);
         return  ResponseEntity.ok("Account registered OK");
     }
+    /////
 
 }
