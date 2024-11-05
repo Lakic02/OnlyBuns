@@ -12,10 +12,11 @@ public class AuthenticationService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public void registerAccount(Account acc){
-        accountRepository.save(acc);
+    public Account registerAccount(Account acc){
+        return accountRepository.save(acc);
     }
-
-
+    public Account findAccountByUserNameAndPassword(String userName, String password) {
+        return accountRepository.findByUserNameAndPassword(userName, password);
+    }
 
 }

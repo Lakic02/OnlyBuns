@@ -8,5 +8,5 @@ import com.example.onlybuns.domain.Account;
 @Repository
 public interface AccountRepository extends JpaRepository<Account,Long>{
     Account findByEmail(String email); //Koristim za prijavu korisnika na sistem
-
+    Account findByUserNameAndPassword(String userName, String password);
 }

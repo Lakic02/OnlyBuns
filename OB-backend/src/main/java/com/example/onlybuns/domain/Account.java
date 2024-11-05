@@ -8,17 +8,22 @@ public class Account {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    public long id;
     @Column(name="name", nullable = false)
-    private String name;
+    public String name;
     @Column(name = "userName", nullable = false)
-    private String userName;
+    public String userName;
     @Column(name ="email",nullable = false,unique = true)
-    private String email;
+    public String email;
     @Column(name = "password", nullable = false)
-    private String password;
+    public String password;
     @Column(name = "address", nullable = false)
-    private String address;
+    public String address;
+    //@Column(name = "role", nullable = false)
+    //private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    public Role role;
 
     public long getId() {
         return id;
@@ -66,5 +71,19 @@ public class Account {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+    
+    public enum Role {
+        admin,
+        registered,
+        unauthenticated
     }
 }
