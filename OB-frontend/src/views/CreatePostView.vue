@@ -21,7 +21,8 @@ export default {
       posts: [],
       userId:0,
       username: '',
-      role: ''
+      role: '',
+      file: null,
     };
   },
   async mounted(){
@@ -45,28 +46,37 @@ export default {
   },
   methods: {
     handleFileUpload(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.image = e.target.result.split(",")[1]; // Base64 string slike
-      };
-      reader.readAsDataURL(file);
+      this.file = event.target.files[0];
     },
 
     async createPost() {
-      const post = {
-        description: this.description,
-        image: this.image,
-        latitude: this.latitude,
-        longitude: this.longitude,
-        accId: this.userId
-      };
-      const response = await axios.post("http://localhost:8081/api/posts/create", post);
-      if (response.data){
-        this.postId = response.data.id;
-      }
-      this.fetchPosts();
-    },
+    const formData = new FormData();
+    formData.append("description", this.description);
+    formData.append("latitude", this.latitude);
+    formData.append("longitude", this.longitude);
+    formData.append("file", this.file); // Dodajemo fajl u formData
+
+    try {
+      console.log("jswsjiwjdijwijdijwij")
+        const response = await axios.post(
+            `http://localhost:8081/api/posts/create/${this.userId}`,
+            formData, // Saljemo formData
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data" // Postavljanje odgovarajućeg Content-Type
+                }
+            }
+            
+        );
+        if (response.data) {
+            this.postId = response.data.id;
+            console.log("223333333333333")
+        }
+        this.fetchPosts();
+    } catch (error) {
+        console.error("Error creating post:", error);
+    }
+},
 
     async likePost() {
       await axios.post(`http://localhost:8081/api/posts/like/${this.postId}/${this.userId}`);

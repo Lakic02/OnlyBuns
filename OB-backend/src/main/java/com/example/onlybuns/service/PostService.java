@@ -1,10 +1,15 @@
 package com.example.onlybuns.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.domain.Comment;
@@ -32,10 +37,26 @@ public class PostService {
     @Autowired
     private CommentRepository commentRepository;
 
+    private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
+
     @Transactional
-    public Post createPost(Post post) {
-        post.setCreationTime(LocalDateTime.now());
-        return postRepository.save(post);
+    public Post createPost(String description, Double latitude, Double longitude, MultipartFile file, Long accId) throws IOException {
+    Account account = accountRepository.findById(accId)
+            .orElseThrow(() -> new RuntimeException("Account not found"));
+
+            System.out.println("NIJEEEEEEEEEEEEEEE");
+    // Kreirajte novi Post objekat
+    Post post = new Post();
+    post.setDescription(description);
+    post.setLatitude(latitude);
+    post.setLongitude(longitude);
+    post.setAccount(account); // Povezivanje sa korisnikom
+    post.setImage(file.getBytes()); // Preuzimanje fajla u byte array
+    post.setCreationTime(LocalDateTime.now());
+        
+    System.out.println("JESTEEEEEEEEEEE");
+    // Spremanje posta u bazu podataka
+    return postRepository.save(post);
     }
 
     @Transactional
@@ -43,20 +64,34 @@ public class PostService {
         return postRepository.findAll();
     }
 
+    
+
     @Transactional
     public void addLike(Long postId, Long userId) {
-        Like like = new Like();
-        like.setPost(postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId)));
-        like.setAccount(accountRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with ID: " + userId)));
-        like.setCreationTime(LocalDateTime.now());
+        Lock lock = locks.get(postId);
 
-        likeRepository.save(like);
+        if (lock == null) {
+            lock = new ReentrantLock();
+            locks.put(postId, lock);
+        }
 
+        lock.lock();
         try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } 
+            boolean exists = likeRepository.existsByPostIdAndAccountId(postId, userId);
+            if (exists) {
+                throw new RuntimeException("User has already liked this post.");
+            }
+            Like like = new Like();
+            like.setPost(postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId)));
+            like.setAccount(accountRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with ID: " + userId)));
+            like.setCreationTime(LocalDateTime.now());
+
+            likeRepository.save(like);
+
+        } finally {
+            lock.unlock();
+            locks.remove(postId, lock);
+        }
     }
 
     @Transactional

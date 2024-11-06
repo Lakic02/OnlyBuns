@@ -26,6 +26,7 @@ public class Account {
     @Column(name = "role", nullable = false)
     public Role role;
 
+
     public long getId() {
         return id;
     }

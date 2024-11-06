@@ -44,10 +44,10 @@ public class SecurityConfig {
                                  "/api/authentication/register",
                                  "/api/authentication/jwt/decode",
                                  "/api/authentication/logIn/**",
-                                 "/api/posts/**").permitAll() // Dozvoljeno svima 
+                                 "/api/posts/create/**").permitAll() // Dozvoljeno svima 
                 .requestMatchers("/api/authentication/jwt/decode") // Admin end-point-ovi
                                  .hasAuthority("ROLE_ADMIN") // Samo korisnici sa rolom ADMIN mogu pristupiti
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

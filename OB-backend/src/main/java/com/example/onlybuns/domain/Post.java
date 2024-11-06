@@ -1,6 +1,8 @@
 package com.example.onlybuns.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 
@@ -12,7 +14,7 @@ public class Post {
     public Long id;
     public String description;
 
-    @Lob // Large Object Binary za sliku
+    @Lob
     public byte[] image;
 
     public Double latitude;
@@ -20,7 +22,10 @@ public class Post {
 
     public LocalDateTime creationTime;
 
-    public Long acc_id;
+    @ManyToOne
+    @JoinColumn(name = "acc_id")
+    private Account account;
+
 
     public Long getId() {
         return id;
@@ -70,12 +75,13 @@ public class Post {
         this.creationTime = creationTime;
     }
 
-    public Long getAccId() {
-        return acc_id;
+    public Account getAccount() {
+        return account;
     }
-
-    public void setAccId(Long acc_id) {
-        this.acc_id = acc_id;
+    
+    public void setAccount(Account account) {
+        this.account = account;
     }
+    
 
 }
