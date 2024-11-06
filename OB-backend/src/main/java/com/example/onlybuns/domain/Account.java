@@ -10,8 +10,10 @@ public class Account {
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long id;
-    @Column(name="name", nullable = false)
-    public String name;
+
+    public String firstName;
+    public String lastName;
+
     @Column(name = "userName", nullable = false)
     public String userName;
     @Column(name ="email",nullable = false,unique = true)
@@ -35,12 +37,20 @@ public class Account {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getUserName() {
