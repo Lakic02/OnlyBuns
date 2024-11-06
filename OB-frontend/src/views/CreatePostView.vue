@@ -1,17 +1,27 @@
 <template>
-    <div class="register-container-login">
-      <form @submit.prevent="createPost">
+    <div class="register-container-create">
+      <form @submit.prevent="createPost" class="aa">
         <input v-model="description" placeholder="Opis objave" required />
         <input type="file" @change="handleFileUpload" required />
+        <MapComponent class="Map" ref="mapComponent" @locationSelected="updateLocation"></MapComponent>
         <!-- <map @locationSelected="updateLocation" />  Map komponenta -->
         <button type="submit">Postavi objavu</button>
       </form>
     </div>
+   <!-- <MapComponent class="Map" ref="mapComponent" @location-selected="updateLocation"></MapComponent>
+    <img class="imagee"  :src="imageUrl" alt="Uploaded image" />-->
+
 </template>
 
 <script>
+
 import axios from 'axios';
+import MapComponent from '@/components/MapComponent.vue';
+
 export default {
+  components:{
+    MapComponent
+  },
   data() {
     return {
       description: "",
@@ -43,6 +53,7 @@ export default {
           console.error('Failed to decode token:', error);
         }
       }
+    //await this.fetchPostFile(this.postId);
   },
   methods: {
     handleFileUpload(event) {
@@ -54,29 +65,37 @@ export default {
     formData.append("description", this.description);
     formData.append("latitude", this.latitude);
     formData.append("longitude", this.longitude);
-    formData.append("file", this.file); // Dodajemo fajl u formData
+    formData.append("file", this.file);
+
+    // Proverite FormData sadržaj
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
 
     try {
-      console.log("jswsjiwjdijwijdijwij")
         const response = await axios.post(
             `http://localhost:8081/api/posts/create/${this.userId}`,
-            formData, // Saljemo formData
+            formData,
             {
                 headers: {
-                    "Content-Type": "multipart/form-data" // Postavljanje odgovarajućeg Content-Type
+                    "Content-Type": "multipart/form-data" 
                 }
             }
-            
         );
         if (response.data) {
             this.postId = response.data.id;
-            console.log("223333333333333")
         }
         this.fetchPosts();
     } catch (error) {
         console.error("Error creating post:", error);
     }
-},
+}, 
+    updateLocation(location){
+      this.longitude = location.longitude
+      this.latitude = location.latitude
+      console.log(this.longitude)
+      console.log(this.latitude)
+    },
 
     async likePost() {
       await axios.post(`http://localhost:8081/api/posts/like/${this.postId}/${this.userId}`);
@@ -99,15 +118,28 @@ export default {
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
+    },
+   /* async fetchPostFile(postId) {
+    try {
+        const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`, { responseType: 'arraybuffer' });
+        const blob = new Blob([response.data], { type: 'image/png' }); // Ili odgovarajući MIME tip za vaš fajl
+        const url = URL.createObjectURL(blob);
+        this.imageUrl = url; // Stvaranje URL-a za sliku
+        console.log("AAAAAAAAAAAAAA"+this.imageUrl)
+    } catch (error) {
+        console.error('Error fetching file:', error);
     }
-  },
+  },*/
   created() {
     this.fetchPosts(); 
+    
   }
+  
+}
 };
 </script>
 <style>
-.register-container-login {
+.register-container-create {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -133,29 +165,14 @@ export default {
   margin-bottom: 10px;
 }
 
-
-
-#LogInButton{
-  background-color: var(--clr-primary);
-  border: none;
-  padding: 10px;
-  font-size: 1.2em;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  width: 100%;
+.imagee{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-
-#LogInButton:hover {
-  background-color: var(--clr-primary);
-}
-
-.error-login{
-  text-align: center;
-  color: red;
-}
-.logInTitle{
-  text-align: center;
-  padding-bottom: 30px;
+.aa{
+  margin-top: 100px;
 }
 </style>

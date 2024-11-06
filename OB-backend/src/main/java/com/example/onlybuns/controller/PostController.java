@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +30,14 @@ public class PostController {
             @RequestParam("description") String description,
             @RequestParam("latitude") Double latitude,
             @RequestParam("longitude") Double longitude,
-            @RequestParam("file") MultipartFile file, // Fajl koji se šalje
+            @RequestParam("file") MultipartFile file, 
             @PathVariable Long accId) throws IOException {
-        System.out.println("GRESKAAAAAAAA");
+                System.out.println(file);
+                System.out.println("File name: " + file.getOriginalFilename());
+                System.out.println("Content Type: " + file.getContentType());
+                System.out.println("File Size: " + file.getSize());
+                
+                System.out.println("Bitovi " + file.getBytes());
         Post post = postService.createPost(description, latitude, longitude, file, accId);
         return ResponseEntity.ok(post);
     }
@@ -51,5 +58,16 @@ public class PostController {
     public ResponseEntity<List<Post>> getAllPosts() {
         return ResponseEntity.ok(postService.getPosts());
     }
+
+    @GetMapping("/getFile/{id}")
+    public ResponseEntity<byte[]> getFile(@PathVariable Long id) {
+    Post post = postService.getPostById(id); // Dobijanje post-a iz baze
+    byte[] file = post.getImage(); // Binarni podaci fajla
+
+    // Postavljanje odgovarajuće MIME vrste fajla, npr. za sliku
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Content-Type", "image/jpeg"); // Zavisi od tipa fajla
+    return new ResponseEntity<>(file, headers, HttpStatus.OK);
+}
     
 }
