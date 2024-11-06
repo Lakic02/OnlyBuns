@@ -45,7 +45,6 @@ public class PostService {
             .orElseThrow(() -> new RuntimeException("Account not found"));
 
             System.out.println("NIJEEEEEEEEEEEEEEE");
-    // Kreirajte novi Post objekat
     Post post = new Post();
     post.setDescription(description);
     post.setLatitude(latitude);
@@ -107,6 +106,10 @@ public class PostService {
         comment.setCreationTime(LocalDateTime.now());
 
         return commentRepository.save(comment);
+    }
+    @Transactional
+    public Post getPostById(Long id) {
+       return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found with ID: " + id));
     }
 
     // Metoda za konverziju adrese u koordinate
