@@ -1,14 +1,18 @@
 package com.example.onlybuns.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +26,7 @@ import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
 import jakarta.transaction.Transactional;
+import net.coobird.thumbnailator.Thumbnails;
 
 @Service
 public class PostService {
@@ -148,8 +153,31 @@ public class PostService {
        return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found with ID: " + id));
     }
 
-    // Metoda za konverziju adrese u koordinate
-    //public Location geocode(String address) {
-        // Implementacija pomoću eksternog servisa (npr. Google Maps API)
-   // }
+    /* @Transactional
+    @Scheduled(cron = "0 0 0 * * ?") // Pokreće se svakog dana u ponoć
+    public void compressOldImages() throws IOException {
+        List<Post> posts = postRepository.findAll();
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minus(1, ChronoUnit.MONTHS);
+
+        List<Post> oldPosts = posts.stream()
+            .filter(post -> post.getCreationTime().isBefore(oneMonthAgo) && post.getImagePath() != null)
+            .collect(Collectors.toList());
+
+        for (Post post : oldPosts) {
+            String imagePath = post.getImagePath();
+            String imageFullPath = System.getProperty("user.dir") + "/images/" + imagePath;
+            File imageFile = new File(imageFullPath);
+
+            if (imageFile.exists()) {
+                String compressedImagePath = imageFullPath.replace(".png", "_compressed.png");
+                Thumbnails.of(imageFile)
+                    .size(800, 800)
+                    .outputFormat("png")
+                    .toFile(compressedImagePath);
+                
+                post.setImagePath(compressedImagePath); 
+                postRepository.save(post);
+            }
+        }
+    }*/
 }

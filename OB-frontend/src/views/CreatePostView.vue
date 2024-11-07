@@ -1,18 +1,27 @@
 <template>
-    <div class="register-container-create">
-      <form @submit.prevent="createPost" class="aa">
-        <input v-model="description" placeholder="Opis objave" required />
-        <input type="file" @change="handleFileUpload" required />
-        <MapComponent class="Map" ref="mapComponent" @locationSelected="updateLocation"></MapComponent>
-        <!-- <map @locationSelected="updateLocation" />  Map komponenta -->
-        <button type="submit">Postavi objavu</button>
-      </form>
-    </div>
-   <!-- <MapComponent class="Map" ref="mapComponent" @location-selected="updateLocation"></MapComponent>
-    <img class="imagee"  :src="imageUrl" alt="Uploaded image" />-->
-
+  <div class="form-container">
+    <form @submit.prevent="createPost" class="form">
+      <input v-model="description" placeholder="Description" required class="input-field" />
+      
+      <label for="file" class="file-label">
+        Choose File
+        <input type="file" id="file" @change="handleFileUpload" required class="file-input" />
+      </label>
+      
+      <div v-if="fileName" class="file-info">
+        File: {{ fileName }}
+      </div>
+      
+      <MapComponent class="map-component" ref="mapComponent" @locationSelected="updateLocation"></MapComponent>
+      
+      <div v-if="latitude && longitude" class="location-info">
+        <p>Address: {{ address.city }}, {{ address.road }} {{ address.house_number }}</p>
+      </div>
+      
+      <button type="submit" class="submit-btn">Post</button>
+    </form>
+  </div>
 </template>
-
 <script>
 
 import axios from 'axios';
@@ -33,6 +42,8 @@ export default {
       username: '',
       role: '',
       file: null,
+      fileName: null,
+      address: null
     };
   },
   async mounted(){
@@ -53,11 +64,12 @@ export default {
           console.error('Failed to decode token:', error);
         }
       }
-    //await this.fetchPostFile(this.postId);
   },
   methods: {
     handleFileUpload(event) {
-      this.file = event.target.files[0];
+      const selectedFile = event.target.files[0];
+      this.file = selectedFile;
+      this.fileName = selectedFile ? selectedFile.name : null;
     },
 
     async createPost() {
@@ -67,7 +79,6 @@ export default {
     formData.append("longitude", this.longitude);
     formData.append("file", this.file);
 
-    // Proverite FormData sadržaj
     for (let [key, value] of formData.entries()) {
         console.log(key, value);
     }
@@ -93,8 +104,10 @@ export default {
     updateLocation(location){
       this.longitude = location.longitude
       this.latitude = location.latitude
+      this.address = location.address;
       console.log(this.longitude)
       console.log(this.latitude)
+      console.log(this.address)
     },
 
     async likePost() {
@@ -139,40 +152,87 @@ export default {
 };
 </script>
 <style>
-.register-container-create {
+.form-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 60px;
-  height: 60vh;
+  align-items: center;
+  height: 100vh;
+  background-color: white;
 }
 
-.form-login {
+.form {
   display: flex;
   flex-direction: column;
-  width: 550px;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
 }
 
-.form-group-login {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+.input-field {
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #e56b6b;
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
 }
 
-.imagee{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+.input-field:focus {
+  border-color: #e56b6b;
 }
 
-.aa{
-  margin-top: 100px;
+.map-component {
+  margin: 20px 0;
+}
+
+.location-info {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #e56b6b;
+}
+
+.submit-btn {
+  padding: 12px;
+  background-color: #e56b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #d75555;
+}
+
+.file-label {
+  background-color: #e56b6b;
+  color: white;
+  padding: 12px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 20px;
+  display: block;
+  transition: background-color 0.3s;
+}
+
+.file-label:hover {
+  background-color: #d75555;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-info {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #e56b6b;
+  font-weight: 600;
 }
 </style>
