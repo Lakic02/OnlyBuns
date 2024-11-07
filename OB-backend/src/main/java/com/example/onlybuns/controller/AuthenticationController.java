@@ -67,7 +67,6 @@ public class AuthenticationController {
         try {
             
             JWTUser user = JWTDecoder.verifyToken(token.token);
-            System.out.println(user.id);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
