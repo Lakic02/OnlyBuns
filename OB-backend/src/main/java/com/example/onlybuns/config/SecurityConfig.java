@@ -45,7 +45,7 @@ public class SecurityConfig {
                                  "/api/authentication/jwt/decode",
                                  "/api/authentication/logIn/**",
                                  "/api/posts/create/**").permitAll() // Dozvoljeno svima 
-                .requestMatchers("/api/authentication/jwt/decode") // Admin end-point-ovi
+                .requestMatchers("/api/accounts/getAll") // Admin end-point-ovi
                                  .hasAuthority("ROLE_ADMIN") // Samo korisnici sa rolom ADMIN mogu pristupiti
                 .anyRequest().permitAll()
             )

@@ -9,4 +9,5 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     // Metoda za pronalaženje posta po ID-u koji nije logički obrisan
     Optional<Post> findByIdAndIsDeletedFalse(Long id);
     List<Post> findAllByIsDeletedFalse();
+    int countByAccountId(Long accountId);
 }

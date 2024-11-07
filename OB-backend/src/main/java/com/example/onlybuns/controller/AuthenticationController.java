@@ -56,18 +56,12 @@ public class AuthenticationController {
         }
     }
 
-
-
-
-
-
     @PostMapping("/jwt/decode")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<JWTUser> getJWTUser(@RequestBody Token token){
         try {
             
             JWTUser user = JWTDecoder.verifyToken(token.token);
-            System.out.println(user.id);
+            //System.out.println(user.id);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);

@@ -17,6 +17,7 @@ public class AccountController {
   private AccountService accountService;
 
   @GetMapping("/getAll")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public Page<Account> getAccounts(
           @RequestParam(required = false) String firstName,
           @RequestParam(required = false) String lastName,
@@ -31,4 +32,26 @@ public class AccountController {
           System.out.println("USLOOO");
     return accountService.getAccounts(firstName, lastName, email, address, minPosts, maxPosts, page, size, sortField, sortDir);
   }
+
+  // Endpoint za brojanje objava korisnika
+  @GetMapping("/countPosts/{accountId}")
+  public ResponseEntity<Integer> countPosts(@PathVariable Long accountId) {
+    int postCount = accountService.countPosts(accountId);
+    return new ResponseEntity<>(postCount, HttpStatus.OK);
+  }
+
+  // Endpoint za brojanje korisnika koje korisnik prati
+  @GetMapping("/countFollowing/{accountId}")
+  public ResponseEntity<Integer> countFollowing(@PathVariable Long accountId) {
+    int followingCount = accountService.countFollowing(accountId);
+    return new ResponseEntity<>(followingCount, HttpStatus.OK);
+  }
+
+  // Endpoint za brojanje pratilaca korisnika
+  @GetMapping("/countFollowers/{accountId}")
+  public ResponseEntity<Integer> countFollowers(@PathVariable Long accountId) {
+    int followersCount = accountService.countFollowers(accountId);
+    return new ResponseEntity<>(followersCount, HttpStatus.OK);
+  }
+
 }
