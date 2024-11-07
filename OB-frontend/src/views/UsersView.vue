@@ -4,22 +4,22 @@
     
     <!-- Pretraga -->
     <div>
-      <input v-model="search.firstName" placeholder="Ime" @input="fetchUsers"/>
-      <input v-model="search.lastName" placeholder="Prezime" @input="fetchUsers"/>
+      <input v-model="search.firstName" placeholder="First Name" @input="fetchUsers"/>
+      <input v-model="search.lastName" placeholder="Last Name" @input="fetchUsers"/>
       <input v-model="search.email" placeholder="Email" @input="fetchUsers"/>
-      <input v-model.number="search.minPosts" placeholder="Minimalan broj objava" @input="fetchUsers"/>
-      <input v-model.number="search.maxPosts" placeholder="Maksimalan broj objava" @input="fetchUsers"/>
+      <input v-model.number="search.minPosts" placeholder="Min. number of posts" @input="fetchUsers"/>
+      <input v-model.number="search.maxPosts" placeholder="Max. number of posts" @input="fetchUsers"/>
     </div>
     
     <!-- Tabela korisnika -->
     <table>
       <thead>
         <tr>
-          <th @click="sort('firstName')">Ime</th>
-          <th @click="sort('lastName')">Prezime</th>
+          <th @click="sort('firstName')">First Name</th>
+          <th @click="sort('lastName')">Last Name</th>
           <th @click="sort('email')">Email</th>
-          <th @click="sort('postCount')">Broj objava</th>
-          <th @click="sort('followingCount')">Broj pratioca</th>
+          <th @click="sort('postCount')">Number of posts</th>
+          <th @click="sort('followingCount')">Following number</th>
         </tr>
       </thead>
       <tbody>
@@ -83,8 +83,25 @@ export default {
           'Authorization': `Bearer ${localStorage.getItem('token')}` // Ovde dodaj token iz localStorage
         },
       })
-      .then(response => {
-        this.users = response.data;
+      .then(async (response) => {
+        this.users.content = response.data.content;
+
+        for (let user of this.users.content) {
+          // Pozivaj API za broj postova
+          const postResponse = await axios.get(`http://localhost:8081/api/accounts/countPosts/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          user.postCount = postResponse.data; 
+
+          const followingResponse = await axios.get(`http://localhost:8081/api/accounts/countFollowing/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          user.followingCount = followingResponse.data;
+        }
       })
       .catch(error => {
         console.error('Greška prilikom dohvatanja korisnika:', error);
