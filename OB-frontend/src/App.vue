@@ -10,6 +10,7 @@
         </div>
         <div class="nav-links nav-secondary">
           <router-link to="/CreatePost">Create Post</router-link>
+          <router-link to="/Posts">All Posts</router-link>
         </div>
         <div class="nav-links nav-secondary">
           <div class="header-user-info">

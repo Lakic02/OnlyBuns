@@ -3,6 +3,7 @@ package com.example.onlybuns.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -38,6 +39,22 @@ public class PostService {
     private CommentRepository commentRepository;
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
+    
+    @Transactional
+    public List<Post> getPosts(){
+        return postRepository.findAllByIsDeletedFalse();
+    }
+    // Brojanje lajkova za objavu
+    @Transactional
+    public long countLikesForPost(Post post) {
+        return likeRepository.countByPost(post);
+    }
+    // Dobijanje svih komentara za objavu
+    @Transactional
+    public List<Comment> getCommentsForPost(Post post) {
+        return commentRepository.findByPost(post);
+    }
+
 
     @Transactional
     public Post createPost(String description, Double latitude, Double longitude, MultipartFile file, Long accId) throws IOException {
@@ -51,6 +68,7 @@ public class PostService {
     post.setLongitude(longitude);
     post.setAccount(account); // Povezivanje sa korisnikom
     post.setImage(file.getBytes()); // Preuzimanje fajla u byte array
+    post.setIsDeleted(false);
     post.setCreationTime(LocalDateTime.now());
         
     System.out.println("JESTEEEEEEEEEEE");
@@ -59,11 +77,30 @@ public class PostService {
     }
 
     @Transactional
-    public List<Post> getPosts(){
-        return postRepository.findAll();
+    public Post editPost(Long postId, String newDescription) {
+        Optional<Post> optionalPost = postRepository.findByIdAndIsDeletedFalse(postId);
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+            post.setDescription(newDescription);
+            post.setCreationTime(LocalDateTime.now());
+            return postRepository.save(post);
+        } else {
+            throw new RuntimeException("Post not found or has been deleted");
+        }
     }
 
-    
+    @Transactional
+    public Post deletePost(Long postId) {
+        Optional<Post> optionalPost = postRepository.findByIdAndIsDeletedFalse(postId);
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+            post.setIsDeleted(true);
+            return postRepository.save(post);
+        } else {
+            throw new RuntimeException("Post not found or has been deleted");
+        }
+    }
+
 
     @Transactional
     public void addLike(Long postId, Long userId) {

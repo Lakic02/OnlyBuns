@@ -26,6 +26,8 @@ public class Post {
     @JoinColumn(name = "acc_id")
     private Account account;
 
+    public boolean isDeleted;
+
 
     public Long getId() {
         return id;
@@ -81,6 +83,14 @@ public class Post {
     
     public void setAccount(Account account) {
         this.account = account;
+    }
+    
+    public boolean getIsDeleted() {
+        return isDeleted;
+    }
+    
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
     
 

@@ -21,9 +21,25 @@ import com.example.onlybuns.service.PostService;
 @RequestMapping("/api/posts")
 @PreAuthorize("hasAuthority('registered')")
 public class PostController {
-
     @Autowired
     private PostService postService;
+    
+    @GetMapping("/getAll")
+    public ResponseEntity<List<Post>> getPosts() {
+        return ResponseEntity.ok(postService.getPosts());
+    }
+
+    @GetMapping("/likes/count/{postId}")
+    public ResponseEntity<Long> getLikesCount(@PathVariable Long postId) {
+        Post post = postService.getPostById(postId);
+        return ResponseEntity.ok(postService.countLikesForPost(post));
+    }
+
+    @GetMapping("/comments/{postId}")
+    public ResponseEntity<List<Comment>> getComments(@PathVariable Long postId) {
+        Post post = postService.getPostById(postId);
+        return ResponseEntity.ok(postService.getCommentsForPost(post));
+    }
 
     @PostMapping("/create/{accId}")
     public ResponseEntity<Post> createPost(
@@ -41,6 +57,18 @@ public class PostController {
         Post post = postService.createPost(description, latitude, longitude, file, accId);
         return ResponseEntity.ok(post);
     }
+    
+    @PutMapping("/edit/{postId}")
+    public ResponseEntity<Post> editPost(@PathVariable Long postId, @RequestParam String newDescription) {
+        Post updatedPost = postService.editPost(postId, newDescription);
+        return ResponseEntity.ok(updatedPost);
+    }
+
+    @DeleteMapping("/delete/{postId}")
+    public ResponseEntity<Post> deletePost(@PathVariable Long postId) {
+        Post deletedPost = postService.deletePost(postId);
+        return ResponseEntity.ok(deletedPost);
+    }
 
     @PostMapping("/like/{postId}/{userId}")
     public ResponseEntity<Void> likePost(@PathVariable Long postId, @PathVariable Long userId) {
@@ -54,14 +82,9 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/getAll")
-    public ResponseEntity<List<Post>> getAllPosts() {
-        return ResponseEntity.ok(postService.getPosts());
-    }
-
-    @GetMapping("/getFile/{id}")
-    public ResponseEntity<byte[]> getFile(@PathVariable Long id) {
-    Post post = postService.getPostById(id); // Dobijanje post-a iz baze
+    @GetMapping("/getFile/{postId}")
+    public ResponseEntity<byte[]> getFile(@PathVariable Long postId) {
+    Post post = postService.getPostById(postId); // Dobijanje post-a iz baze
     byte[] file = post.getImage(); // Binarni podaci fajla
 
     // Postavljanje odgovarajuće MIME vrste fajla, npr. za sliku
