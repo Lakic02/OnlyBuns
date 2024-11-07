@@ -1,7 +1,12 @@
 package com.example.onlybuns.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -43,18 +48,27 @@ public class PostController {
 
     @PostMapping("/create/{accId}")
     public ResponseEntity<Post> createPost(
-            @RequestParam("description") String description,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude,
-            @RequestParam("file") MultipartFile file, 
-            @PathVariable Long accId) throws IOException {
-                System.out.println(file);
-                System.out.println("File name: " + file.getOriginalFilename());
-                System.out.println("Content Type: " + file.getContentType());
-                System.out.println("File Size: " + file.getSize());
-                
-                System.out.println("Bitovi " + file.getBytes());
-        Post post = postService.createPost(description, latitude, longitude, file, accId);
+        @RequestParam("description") String description,
+        @RequestParam("latitude") Double latitude,
+        @RequestParam("longitude") Double longitude,
+        @RequestParam("file") MultipartFile file, 
+        @PathVariable Long accId) throws IOException {
+
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            
+        System.out.println(fileName);
+        String uploadDir = System.getProperty("user.dir") + "/images/";
+        System.out.println(uploadDir);
+        File directory = new File(uploadDir);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        String filePath = uploadDir + fileName;
+        System.out.println(filePath);
+        File destinationFile = new File(filePath);
+        file.transferTo(destinationFile);
+
+        Post post = postService.createPost(description, latitude, longitude, fileName, accId);
         return ResponseEntity.ok(post);
     }
     
@@ -83,14 +97,10 @@ public class PostController {
     }
 
     @GetMapping("/getFile/{postId}")
-    public ResponseEntity<byte[]> getFile(@PathVariable Long postId) {
-    Post post = postService.getPostById(postId); // Dobijanje post-a iz baze
-    byte[] file = post.getImage(); // Binarni podaci fajla
-
-    // Postavljanje odgovarajuće MIME vrste fajla, npr. za sliku
-    HttpHeaders headers = new HttpHeaders();
-    headers.add("Content-Type", "image/jpeg"); // Zavisi od tipa fajla
-    return new ResponseEntity<>(file, headers, HttpStatus.OK);
-}
+    public ResponseEntity<String> getFile(@PathVariable Long postId) {
+        Post post = postService.getPostById(postId); // Dobijanje post-a iz baze
+        String imagePath = post.getImagePath(); // Vraćamo samo naziv slike, npr. "2654ad81-c0a5-4053-a530-ef6a6c35a219_Screenshot 2024-10-30 223357.png"
+        return new ResponseEntity<>(imagePath, HttpStatus.OK);
+    }
     
 }

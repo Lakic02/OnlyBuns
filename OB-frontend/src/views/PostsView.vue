@@ -15,7 +15,7 @@
       
       <div class="post-body">
         <p>{{ post.description }}</p>
-        <img v-if="post.image" :src="postImageUrls[post.id]" alt="Post Image" class="post-image" />
+        <img v-if="post.imageUrl" :src="post.imageUrl" alt="Post Image" class="post-image" />
       </div>
       
       <div class="post-footer">
@@ -65,18 +65,17 @@ export default {
       return `data:image/png;base64,${btoa(new Uint8Array(imageData).reduce((data, byte) => data + String.fromCharCode(byte), ''))}`;
     },
     async fetchPostFile(postId) {
-      try {
-        const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`, { responseType: 'arraybuffer' });
-        const mimeType = response.headers['content-type'] || 'image/png';
-        const blob = new Blob([response.data], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-
-        // Postavi URL slike za dati post ID
-        this.postImageUrls[postId] = url;
-      } catch (error) {
-        console.error('Error fetching file:', error);
-      }
-    },
+  try {
+    const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`);
+    let imagePath = response.data;
+    imagePath = imagePath.replace(/\\/g, '/'); // Zameni sve backslash-e sa slash-ovima
+    
+    // Postavljanje pune URL putanje za sliku
+    this.posts.find(post => post.id === postId).imageUrl = `http://localhost:8081/images/${imagePath}`;
+  } catch (error) {
+    console.error('Error fetching file:', error);
+  }
+},
     async fetchPostLikes(postId) {
       try {
         const response = await axios.get(`http://localhost:8081/api/posts/likes/count/${postId}`);

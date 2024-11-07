@@ -14,19 +14,21 @@ public class Post {
     public Long id;
     public String description;
 
-    @Lob
-    public byte[] image;
+    public String imagePath;
 
     public Double latitude;
     public Double longitude;
 
     public LocalDateTime creationTime;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     @ManyToOne
     @JoinColumn(name = "acc_id")
     private Account account;
 
-    public boolean isDeleted;
+   
 
 
     public Long getId() {
@@ -45,12 +47,12 @@ public class Post {
         this.description = description;
     }
 
-    public byte[] getImage() {
-        return image;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setImagePath(String image) {
+        this.imagePath = image;
     }
 
     public Double getLatitude() {
@@ -85,11 +87,11 @@ public class Post {
         this.account = account;
     }
     
-    public boolean getIsDeleted() {
+    public boolean getDeleted() {
         return isDeleted;
     }
     
-    public void setIsDeleted(boolean isDeleted) {
+    public void setDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
     

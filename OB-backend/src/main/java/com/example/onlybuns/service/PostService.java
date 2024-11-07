@@ -57,23 +57,22 @@ public class PostService {
 
 
     @Transactional
-    public Post createPost(String description, Double latitude, Double longitude, MultipartFile file, Long accId) throws IOException {
+    public Post createPost(String description, Double latitude, Double longitude, String file, Long accId) throws IOException {
     Account account = accountRepository.findById(accId)
             .orElseThrow(() -> new RuntimeException("Account not found"));
 
-            System.out.println("NIJEEEEEEEEEEEEEEE");
-    Post post = new Post();
-    post.setDescription(description);
-    post.setLatitude(latitude);
-    post.setLongitude(longitude);
-    post.setAccount(account); // Povezivanje sa korisnikom
-    post.setImage(file.getBytes()); // Preuzimanje fajla u byte array
-    post.setIsDeleted(false);
-    post.setCreationTime(LocalDateTime.now());
-        
-    System.out.println("JESTEEEEEEEEEEE");
-    // Spremanje posta u bazu podataka
-    return postRepository.save(post);
+            Post post = new Post();
+            post.setDescription(description);
+            post.setLatitude(latitude);
+            post.setLongitude(longitude);
+            post.setAccount(account); 
+            post.setImagePath(file); 
+            System.out.println(file);
+            post.setDeleted(false);
+            post.setCreationTime(LocalDateTime.now());
+                
+           
+            return postRepository.save(post);
     }
 
     @Transactional
@@ -94,7 +93,7 @@ public class PostService {
         Optional<Post> optionalPost = postRepository.findByIdAndIsDeletedFalse(postId);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-            post.setIsDeleted(true);
+            post.setDeleted(true);
             return postRepository.save(post);
         } else {
             throw new RuntimeException("Post not found or has been deleted");
