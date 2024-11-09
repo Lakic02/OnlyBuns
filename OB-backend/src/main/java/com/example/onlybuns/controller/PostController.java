@@ -46,6 +46,16 @@ public class PostController {
         return ResponseEntity.ok(postService.getCommentsForPost(post));
     }
 
+    @PutMapping("/update/{postId}")
+    public ResponseEntity<Post> editPost(
+        @PathVariable Long postId,
+        @RequestParam(value = "description", required = false) String description,
+        @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+
+        Post updatedPost = postService.editPost(postId, description, file);
+        return ResponseEntity.ok(updatedPost);
+    }
+
     @PostMapping("/create/{accId}")
     public ResponseEntity<Post> createPost(
         @RequestParam("description") String description,
@@ -70,12 +80,6 @@ public class PostController {
 
         Post post = postService.createPost(description, latitude, longitude, fileName, accId);
         return ResponseEntity.ok(post);
-    }
-    
-    @PutMapping("/edit/{postId}")
-    public ResponseEntity<Post> editPost(@PathVariable Long postId, @RequestParam String newDescription) {
-        Post updatedPost = postService.editPost(postId, newDescription);
-        return ResponseEntity.ok(updatedPost);
     }
 
     @DeleteMapping("/delete/{postId}")

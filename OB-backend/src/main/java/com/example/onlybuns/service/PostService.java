@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -152,6 +153,47 @@ public class PostService {
     public Post getPostById(Long id) {
        return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found with ID: " + id));
     }
+
+    @Transactional
+    public Post editPost(Long postId, String newDescription, MultipartFile newFile) throws IOException {
+        Optional<Post> optionalPost = postRepository.findByIdAndIsDeletedFalse(postId);
+        if (optionalPost.isEmpty()) {
+            throw new RuntimeException("Post not found or has been deleted");
+        }
+
+        Post post = optionalPost.get();
+
+        // Ažuriranje opisa
+        if (newDescription != null && !newDescription.isEmpty()) {
+            post.setDescription(newDescription);
+        }
+
+        // Ažuriranje slike
+        if (newFile != null && !newFile.isEmpty()) {
+            String fileName = UUID.randomUUID().toString() + "_" + newFile.getOriginalFilename();
+            String uploadDir = System.getProperty("user.dir") + "/images/";
+            File directory = new File(uploadDir);
+            if (!directory.exists()) {
+                directory.mkdir();
+            }
+            String filePath = uploadDir + fileName;
+            File destinationFile = new File(filePath);
+            newFile.transferTo(destinationFile);
+
+            // Brisanje stare slike (opciono)
+            String oldImagePath = System.getProperty("user.dir") + "/images/" + post.getImagePath();
+            File oldImageFile = new File(oldImagePath);
+            if (oldImageFile.exists()) {
+                oldImageFile.delete();
+            }
+
+            post.setImagePath(fileName);
+        }
+
+        post.setCreationTime(LocalDateTime.now());
+        return postRepository.save(post);
+    }
+
 
     /* @Transactional
     @Scheduled(cron = "0 0 0 * * ?") // Pokreće se svakog dana u ponoć

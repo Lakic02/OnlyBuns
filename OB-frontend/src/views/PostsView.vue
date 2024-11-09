@@ -1,4 +1,5 @@
 <template>
+  <h1 class="admin-posts-title">Check All Posts</h1>
   <div class="post-container">
     <div v-for="post in posts" :key="post.id" class="post-card">
       <div class="post-header">
@@ -8,14 +9,46 @@
           <p class="post-date">{{ formatDate(post.creationTime) }}</p>
         </div>
         <div class="post-actions" v-if="loggedInUserId === post.account.id">
-          <button @click="editPost(post.id)" class="action-button">✏️</button>
+          <button @click="startEditing(post)" class="action-button">✏️</button>
           <button @click="deletePost(post.id)" class="action-button">🗑️</button>
         </div>
       </div>
       
       <div class="post-body">
-        <p>{{ post.description }}</p>
-        <img v-if="post.imageUrl" :src="post.imageUrl" alt="Post Image" class="post-image" />
+        <!-- Prikaz forme za editovanje ako je trenutni post u edit modu -->
+        <div v-if="editingPost && editingPost.id === post.id">
+          <textarea 
+            v-model="editingPost.description" 
+            class="edit-input"
+            placeholder="Input new text"
+          ></textarea>
+          
+          <div class="edit-image-container">
+            <input 
+              type="file" 
+              @change="handleImageChange" 
+              accept="image/*"
+              class="edit-post-file-input"
+            >
+            <img 
+              v-if="imagePreview" 
+              :src="imagePreview" 
+              alt="Preview" 
+              class="image-preview"
+            >
+          </div>
+          
+          <div class="edit-buttons">
+            <button @click="saveEdit(post.id)" class="save-button">Save changes</button>
+            <button @click="cancelEdit" class="cancel-button">Cancel</button>
+          </div>
+        </div>
+        
+        <!-- Normalan prikaz posta ako nije u edit modu -->
+        <div v-else>
+          <p>{{ post.description }}</p>
+          <img v-if="post.imageUrl" :src="post.imageUrl" alt="Post Image" class="post-image" />
+        </div>
       </div>
       
       <div class="post-footer">
@@ -35,7 +68,11 @@ export default {
       posts: [],
       postImageUrls: {},
       postLikes: {},
-      loggedInUserId: 0
+      loggedInUserId: 0,
+      editingPost: null,
+      newImage: null,
+      fileName: null,
+      imagePreview: null
     };
   },
   mounted() {
@@ -43,6 +80,53 @@ export default {
     this.loadUser();
   },
   methods: {
+    startEditing(post) {
+      this.editingPost = {
+        id: post.id,
+        description: post.description
+      };
+      this.imagePreview = post.imageUrl;
+    },
+    cancelEdit() {
+      this.editingPost = null;
+      this.newImage = null;
+      this.imagePreview = null;
+    },
+    handleImageChange(event) {
+      const selectedFile = event.target.files[0];
+      if (selectedFile) {
+        this.newImage = selectedFile;
+        this.fileName = selectedFile ? selectedFile.name : null;
+        this.imagePreview = URL.createObjectURL(selectedFile);
+      }
+    },
+    async saveEdit(postId) {
+      try {
+        const formData = new FormData();
+        formData.append('description', this.editingPost.description);
+        if (this.newImage) {
+          formData.append('file', this.newImage);
+        }
+
+        const response = await axios.put(
+          `http://localhost:8081/api/posts/update/${postId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+
+        if (response.data) {
+          // Osvežavanje liste postova
+          await this.fetchPosts();
+          this.cancelEdit();
+        }
+      } catch (error) {
+        console.error('Error updating post:', error);
+      }
+    },
     fetchPosts() {
       axios.get('http://localhost:8081/api/posts/getAll')
         .then(response => {
@@ -117,11 +201,17 @@ export default {
 </script>
 
 <style>
+.admin-posts-title {
+  margin-top: 20px;
+  color: var(--clr-black);
+  text-align: center;
+  margin-bottom: 30px;
+}
 .post-container {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  padding: 1rem;
+  padding: 20px;
   justify-content: center;
 }
 
@@ -132,7 +222,6 @@ export default {
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 25vh;
 }
 
 .post-header {
@@ -192,5 +281,61 @@ export default {
   margin-top: 1rem;
   font-size: 0.9rem;
   color: #657786;
+}
+
+.edit-input {
+  width: 100%;
+  min-height: 100px;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #e1e8ed;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.edit-image-container {
+  margin: 10px 0;
+}
+
+.edit-post-file-input {
+  margin-bottom: 10px;
+}
+
+.image-preview {
+  max-width: 100%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-button, .cancel-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.save-button {
+  background-color: #1da1f2;
+  color: white;
+}
+
+.cancel-button {
+  background-color: #657786;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #1991da;
+}
+
+.cancel-button:hover {
+  background-color: #566b76;
 }
 </style>

@@ -23,46 +23,30 @@ public class AccountService {
     private FollowRepository followRepository;
 
     public Page<Account> getAccounts(String firstName, String lastName, String email, String address, Integer minPosts, Integer maxPosts, int page, int size, String sortField, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-
-        // Prvo, pretrazi sve filtere odvojeno
-        Page<Account> firstNamePage = firstName != null && !firstName.isEmpty() ?
-            accountRepository.findByFirstNameContainingIgnoreCase(firstName, pageRequest) : null;
-
-        Page<Account> lastNamePage = lastName != null && !lastName.isEmpty() ?
-            accountRepository.findByLastNameContainingIgnoreCase(lastName, pageRequest) : null;
-
-        Page<Account> emailPage = email != null && !email.isEmpty() ?
-            accountRepository.findByEmailContainingIgnoreCase(email, pageRequest) : null;
-            
-        Page<Account> addressPage = address != null && !address.isEmpty() ?
-            accountRepository.findByAddressContainingIgnoreCase(address, pageRequest) : null;
-
-        // Ako su svi filteri prazni, vrati sve korisnike
-        if (firstName == null && lastName == null && email == null && address == null && 
-            (minPosts == null || minPosts == 0) && (maxPosts == null || maxPosts == 0)) {
-                System.out.println("UZMI SVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-            return accountRepository.findAll(pageRequest);
-        }
-
-        // Ako je samo jedan filter postavljen, vraćaju se odgovarajući rezultati
+        PageRequest pageRequest = PageRequest.of(page, size);
         List<Account> resultList = new ArrayList<>(accountRepository.findAll());
-
-        if (firstNamePage != null) {
-            resultList.retainAll(firstNamePage.getContent());
+    
+        // Filtriranje na osnovu imena
+        if (firstName != null && !firstName.isEmpty()) {
+            resultList.retainAll(accountRepository.findByFirstNameContainingIgnoreCase(firstName, PageRequest.of(0, Integer.MAX_VALUE)).getContent());
         }
-        if (lastNamePage != null) {
-            resultList.retainAll(lastNamePage.getContent());  // Presek sa lastName pretragom
+    
+        // Filtriranje na osnovu prezimena
+        if (lastName != null && !lastName.isEmpty()) {
+            resultList.retainAll(accountRepository.findByLastNameContainingIgnoreCase(lastName, PageRequest.of(0, Integer.MAX_VALUE)).getContent());
         }
-        if (emailPage != null) {
-            resultList.retainAll(emailPage.getContent());  // Presek sa email pretragom
+    
+        // Filtriranje na osnovu email adrese
+        if (email != null && !email.isEmpty()) {
+            resultList.retainAll(accountRepository.findByEmailContainingIgnoreCase(email, PageRequest.of(0, Integer.MAX_VALUE)).getContent());
         }
-        if (addressPage != null) {
-            resultList.retainAll(addressPage.getContent());  // Presek sa adress pretragom
+    
+        // Filtriranje na osnovu adrese
+        if (address != null && !address.isEmpty()) {
+            resultList.retainAll(accountRepository.findByAddressContainingIgnoreCase(address, PageRequest.of(0, Integer.MAX_VALUE)).getContent());
         }
-
-        // Filtriraj korisnike po broju objava na osnovu minPosts i maxPosts
+    
+        // Filtriranje po broju postova (minPosts i maxPosts)
         if (minPosts != null || maxPosts != null) {
             resultList = resultList.stream()
                 .filter(account -> {
@@ -73,15 +57,45 @@ public class AccountService {
                 })
                 .collect(Collectors.toList());
         }
-
-
+    
+        // Primenjuje se Comparator na osnovu sortField
+        Comparator<Account> comparator;
+        if (sortField.equalsIgnoreCase("email")) {
+            comparator = Comparator.comparing(Account::getEmail, String.CASE_INSENSITIVE_ORDER);
+        } else if (sortField.equalsIgnoreCase("followingCount")) {
+            comparator = Comparator.comparing(account -> followRepository.countByFollowerId(account.getId()));
+        } else {
+            // Podrazumevano sortiranje po emailu ako sortField nije prepoznat
+            comparator = Comparator.comparing(Account::getEmail, String.CASE_INSENSITIVE_ORDER);
+        }
+    
+        // Ako je pravac sortiranja "desc", obrni Comparator
+        if (sortDir.equalsIgnoreCase("desc")) {
+            comparator = comparator.reversed();
+        }
+    
+        // Sortiraj listu rezultata koristeći izabrani Comparator
+        resultList.sort(comparator);
+    
+        // Ispis svih pronađenih naloga (sortirano i filtrirano)
+        System.out.println("Svi pronađeni nalozi (sortirani):");
+        for (Account account : resultList) {
+            System.out.println("ID: " + account.getId() +
+                               ", First Name: " + account.getFirstName() +
+                               ", Last Name: " + account.getLastName() +
+                               ", Email: " + account.getEmail());
+        }
+    
         // Ako nije pronađeno nijedno podudaranje, vrati praznu listu
         if (resultList.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageRequest, 0);
         }
-
-        // Ako je pronađeno odgovarajuće podudaranje, vrati ih kao stranicu
-        return new PageImpl<>(resultList, pageRequest, resultList.size());
+    
+        // Kreiranje stranice sa rezultatima
+        int start = Math.min((int) pageRequest.getOffset(), resultList.size());
+        int end = Math.min((start + pageRequest.getPageSize()), resultList.size());
+        
+        return new PageImpl<>(resultList.subList(start, end), pageRequest, resultList.size());
     }
 
     public int countPosts(Long accountId) {
@@ -95,56 +109,5 @@ public class AccountService {
     public int countFollowers(Long accountId) {
         return followRepository.countByFollowedId(accountId);
     }
-
-
-
-
-  /*public Page<Account> getAccounts(String firstName, String lastName, String email, Integer minPosts, Integer maxPosts, int page, int size, String sortField, String sortDir) {
-    Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
-    PageRequest pageRequest = PageRequest.of(page, size, sort);
-    System.out.println("PAGE REQ: "+pageRequest);
-    // if (minPosts != null || maxPosts != null) {
-    //     return accountRepository.findByPostCountBetween(minPosts, maxPosts, pageRequest);
-    // } else {
-    Page<Account> accounts = accountRepository.findByFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCase(firstName, lastName, email, pageRequest);
-    System.out.println(":::ACCOUNTS:::");
-    System.out.println(accounts);
-    return accounts;
-    // }
-  }*/
-
-//   public Page<Account> getAccounts(String firstName, String lastName, String email, Integer minPosts, Integer maxPosts, int page, int size, String sortField, String sortDir) {
-//     Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
-//     PageRequest pageRequest = PageRequest.of(page, size, sort);
-
-//     // Provera da li su filteri prazni ili null
-//     boolean isFilterEmpty = (firstName == null || firstName.isEmpty()) &&
-//                             (lastName == null || lastName.isEmpty()) &&
-//                             (email == null || email.isEmpty()) &&
-//                             minPosts == null && maxPosts == null;
-
-//     if (isFilterEmpty) {
-//         // Ako su svi filteri prazni, vrati sve korisnike
-//         return accountRepository.findAll(pageRequest);
-//     } else {
-//         // Dinamički konstruisanje uslova za filtere
-//         if (firstName != null && !firstName.isEmpty()) {
-//             return accountRepository.findByFirstNameContainingIgnoreCase(firstName, pageRequest);
-//         }
-//         if (lastName != null && !lastName.isEmpty()) {
-//             return accountRepository.findByLastNameContainingIgnoreCase(lastName, pageRequest);
-//         }
-//         if (email != null && !email.isEmpty()) {
-//             return accountRepository.findByEmailContainingIgnoreCase(email, pageRequest);
-//         }
-//         // Ako su postavke za postove zadate
-//         // if (minPosts != null || maxPosts != null) {
-//         //     return accountRepository.findByPostCountBetween(minPosts, maxPosts, pageRequest);
-//         // }
-        
-//         // Ako ima više filtera, mogu se dodati dodatni uslovi kombinovani (logika se može proširiti)
-//         return accountRepository.findByFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCase(firstName, lastName, email, pageRequest);
-//     }
-// }
 
 }

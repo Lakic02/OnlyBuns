@@ -1,53 +1,76 @@
 <template>
-  <div class="admin-users-view">
-    <h1 class="admin-users-view-h1">Prikaz svih korisnika</h1>
+  <div class="admin-users-container">
+    <h1 class="admin-users-title">Check All Users</h1>
     
     <!-- Pretraga -->
-    <div>
-      <input v-model="search.firstName" placeholder="First Name" @input="fetchUsers"/>
-      <input v-model="search.lastName" placeholder="Last Name" @input="fetchUsers"/>
-      <input v-model="search.email" placeholder="Email" @input="fetchUsers"/>
-      <input v-model.number="search.minPosts" placeholder="Min. number of posts" @input="fetchUsers"/>
-      <input v-model.number="search.maxPosts" placeholder="Max. number of posts" @input="fetchUsers"/>
+    <div class="admin-users-search">
+      <input v-model="search.firstName" placeholder="First Name" @input="fetchUsers" class="admin-users-input"/>
+      <input v-model="search.lastName" placeholder="Last Name" @input="fetchUsers" class="admin-users-input"/>
+      <input v-model="search.email" placeholder="Email" @input="fetchUsers" class="admin-users-input"/>
+      <input v-model.number="search.minPosts" placeholder="Min. number of posts" @input="fetchUsers" class="admin-users-input"/>
+      <input v-model.number="search.maxPosts" placeholder="Max. number of posts" @input="fetchUsers" class="admin-users-input"/>
+    </div>
+
+    <!-- Sortiranje -->
+    <div class="admin-users-sort-wrapper">
+      <select v-model="sortField" @change="fetchUsers" class="admin-users-select">
+        <option value="email">Sort by Email</option>
+        <option value="followingCount">Sort by Following Number</option>
+      </select>
+      <select v-model="sortDir" @change="fetchUsers" class="admin-users-select">
+        <option value="asc">Ascending (ASC)</option>
+        <option value="desc">Descending (DESC)</option>
+      </select>
     </div>
     
     <!-- Tabela korisnika -->
-    <table>
-      <thead>
-        <tr>
-          <th @click="sort('firstName')">First Name</th>
-          <th @click="sort('lastName')">Last Name</th>
-          <th @click="sort('email')">Email</th>
-          <th @click="sort('postCount')">Number of posts</th>
-          <th @click="sort('followingCount')">Following number</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in users.content" :key="user.id">
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.postCount }}</td>
-          <td>{{ user.followingCount }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="admin-users-table-wrapper">
+      <table class="admin-users-table">
+        <thead>
+          <tr>
+            <th class="admin-users-th">First Name</th>
+            <th class="admin-users-th">Last Name</th>
+            <th class="admin-users-th">Email</th>
+            <th class="admin-users-th">Number of posts</th>
+            <th class="admin-users-th">Following number</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in users.content" :key="user.id" class="admin-users-tr">
+            <td class="admin-users-td">{{ user.firstName }}</td>
+            <td class="admin-users-td">{{ user.lastName }}</td>
+            <td class="admin-users-td">{{ user.email }}</td>
+            <td class="admin-users-td">{{ user.postCount }}</td>
+            <td class="admin-users-td">{{ user.followingCount }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     
     <!-- Paginacija -->
-    <div>
-      <button :disabled="users.first" @click="changePage(users.pageable.pageNumber - 1)">Prethodna</button>
-      <button :disabled="users.last" @click="changePage(users.pageable.pageNumber + 1)">Sledeća</button>
+    <div class="admin-users-pagination">
+      <button 
+        :disabled="users.first" 
+        @click="changePage(users.pageable.pageNumber - 1)"
+        class="admin-users-pagination-btn"
+      >Prethodna</button>
+      <button 
+        :disabled="users.last" 
+        @click="changePage(users.pageable.pageNumber + 1)"
+        class="admin-users-pagination-btn"
+      >Sledeća</button>
     </div>
   </div>
 </template>
 
 <script>
+// Script deo ostaje isti
 import axios from 'axios';
 
 export default {
   data() {
     return {
-      users: { content: [], pageable: {} }, // Podaci o korisnicima
+      users: { content: [], pageable: {} },
       search: {
         firstName: '',
         lastName: '',
@@ -58,15 +81,16 @@ export default {
       sortField: 'email',
       sortDir: 'asc',
       currentPage: 0,
-      pageSize: 5,
+      pageSize: 999,
     };
   },
-  mounted(){
-    this.fetchUsers()
+  mounted() {
+    this.fetchUsers();
   },
   methods: {
-    // Funkcija za dohvatanje korisnika
     fetchUsers() {
+      console.log(this.sortField)
+      console.log(this.sortDir)
       axios.get('http://localhost:8081/api/accounts/getAll', {
         params: {
           firstName: this.search.firstName,
@@ -80,14 +104,13 @@ export default {
           sortDir: this.sortDir,
         },
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Ovde dodaj token iz localStorage
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
       })
       .then(async (response) => {
         this.users.content = response.data.content;
 
         for (let user of this.users.content) {
-          // Pozivaj API za broj postova
           const postResponse = await axios.get(`http://localhost:8081/api/accounts/countPosts/${user.id}`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -107,17 +130,6 @@ export default {
         console.error('Greška prilikom dohvatanja korisnika:', error);
       });
     },
-    // Funkcija za sortiranje po odabranom polju
-    sort(field) {
-      if (this.sortField === field) {
-        this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'; // Ako je već sortirano po ovom polju, menja pravac sortiranja
-      } else {
-        this.sortField = field;
-        this.sortDir = 'asc'; // Početni pravac sortiranja
-      }
-      this.fetchUsers();
-    },
-    // Funkcija za promenu stranice
     changePage(pageNumber) {
       if (pageNumber >= 0 && pageNumber < this.users.pageable.totalPages) {
         this.currentPage = pageNumber;
@@ -129,26 +141,133 @@ export default {
 </script>
 
 <style>
-.admin-users-view-h1{
-  margin-bottom: 20vh;
+.admin-users-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
-table {
+
+.admin-users-title {
+  color: var(--clr-black);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.admin-users-search {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.admin-users-input {
+  padding: 7px 15px;
+  border: 1px solid var(--clr-primary);
+  border-radius: 3px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-users-input:focus {
+  outline: none;
+  border-color: var(--clr-primary-dark);
+}
+
+.admin-users-sort-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.admin-users-select {
+  padding: 7px 15px;
+  border: 1px solid var(--clr-primary);
+  border-radius: 3px;
+  background-color: white;
+  color: var(--clr-black);
+  cursor: pointer;
+}
+
+.admin-users-select:hover {
+  border-color: var(--clr-primary-dark);
+}
+
+.admin-users-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-users-table {
   width: 100%;
   border-collapse: collapse;
+  background-color: white;
 }
-table, th, td {
-  border: 1px solid black;
-}
-th, td {
-  padding: 10px;
+
+.admin-users-th {
+  background-color: var(--clr-black);
+  color: white;
+  padding: 12px 15px;
   text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
 }
-input {
-  margin-right: 10px;
-  padding: 5px;
+
+.admin-users-th:hover {
+  background-color: var(--clr-secondary-dark);
 }
-button {
-  padding: 5px 10px;
-  margin-top: 10px;
+
+.admin-users-td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-users-tr:hover {
+  background-color: #f9f9f9;
+}
+
+.admin-users-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.admin-users-pagination-btn {
+  background-color: var(--clr-primary);
+  color: white;
+  border: none;
+  padding: 7px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.admin-users-pagination-btn:hover:not(:disabled) {
+  background-color: var(--clr-primary-dark);
+}
+
+.admin-users-pagination-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .admin-users-search {
+    flex-direction: column;
+  }
+  
+  .admin-users-input {
+    width: 100%;
+  }
+  
+  .admin-users-sort-wrapper {
+    flex-direction: column;
+  }
+  
+  .admin-users-select {
+    width: 100%;
+  }
 }
 </style>
