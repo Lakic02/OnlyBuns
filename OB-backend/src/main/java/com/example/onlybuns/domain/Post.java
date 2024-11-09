@@ -1,9 +1,6 @@
 package com.example.onlybuns.domain;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -20,6 +17,14 @@ public class Post {
     public Double longitude;
 
     public LocalDateTime creationTime;
+
+    
+    @Column(name = "compress_Time")
+    public LocalDateTime compressTime;
+
+    
+    @Column(name = "is_Compressed")
+    public int isCompressed;
 
     @Column(name = "is_deleted")
     private boolean isDeleted;
@@ -79,6 +84,14 @@ public class Post {
         this.creationTime = creationTime;
     }
 
+    public LocalDateTime getCompressTime() {
+        return compressTime;
+    }
+
+    public void setCompressTime(LocalDateTime compressTime) {
+        this.compressTime = compressTime;
+    }
+
     public Account getAccount() {
         return account;
     }
@@ -94,6 +107,13 @@ public class Post {
     public void setDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
+    public int getIsCompressed() {
+        return isCompressed;
+    }
+    public void setIsCompressed(int isCompressed) {
+        this.isCompressed = isCompressed;
+    }
+
     
 
 }

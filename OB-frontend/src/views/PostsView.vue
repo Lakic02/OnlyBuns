@@ -151,11 +151,18 @@ export default {
     async fetchPostFile(postId) {
   try {
     const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`);
-    let imagePath = response.data;
-    imagePath = imagePath.replace(/\\/g, '/'); // Zameni sve backslash-e sa slash-ovima
     
-    // Postavljanje pune URL putanje za sliku
-    this.posts.find(post => post.id === postId).imageUrl = `http://localhost:8081/images/${imagePath}`;
+    let imagePath = response.data.imagePath;
+    let compress = response.data.compress;
+
+    if (compress === 1) {
+      imagePath = imagePath.replace(/\\/g, '/'); 
+      this.posts.find(post => post.id === postId).imageUrl = `http://localhost:8081/compressedImages/${imagePath}`;
+    } else {
+      imagePath = imagePath.replace(/\\/g, '/'); 
+      this.posts.find(post => post.id === postId).imageUrl = `http://localhost:8081/images/${imagePath}`;
+    }
+    
   } catch (error) {
     console.error('Error fetching file:', error);
   }

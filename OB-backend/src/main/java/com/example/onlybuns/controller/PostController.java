@@ -2,15 +2,13 @@ package com.example.onlybuns.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -66,15 +64,12 @@ public class PostController {
 
         String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             
-        System.out.println(fileName);
         String uploadDir = System.getProperty("user.dir") + "/images/";
-        System.out.println(uploadDir);
         File directory = new File(uploadDir);
         if (!directory.exists()) {
             directory.mkdir();
         }
         String filePath = uploadDir + fileName;
-        System.out.println(filePath);
         File destinationFile = new File(filePath);
         file.transferTo(destinationFile);
 
@@ -101,10 +96,22 @@ public class PostController {
     }
 
     @GetMapping("/getFile/{postId}")
-    public ResponseEntity<String> getFile(@PathVariable Long postId) {
-        Post post = postService.getPostById(postId); // Dobijanje post-a iz baze
-        String imagePath = post.getImagePath(); // Vraćamo samo naziv slike, npr. "2654ad81-c0a5-4053-a530-ef6a6c35a219_Screenshot 2024-10-30 223357.png"
-        return new ResponseEntity<>(imagePath, HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> getFile(@PathVariable Long postId) {
+        
+        Post post = postService.getPostById(postId);
+        Map<String, Object> response = new HashMap<>();
+        
+        String imagePath = post.getImagePath();
+        Integer compress = post.getIsCompressed(); 
+        
+        response.put("imagePath", imagePath);
+        response.put("compress", compress);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/posts/coordinates/{postId}")
+    public String getPostCoordinates(@PathVariable Long postId) {
+        return postService.getCoordinatesByPostId(postId);
     }
     
 }

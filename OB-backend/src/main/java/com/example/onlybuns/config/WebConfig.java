@@ -16,8 +16,10 @@ public class WebConfig implements WebMvcConfigurer {
     }
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Konfiguriši putanju za slike
-        registry.addResourceHandler("/images/**") // Putanja koju koristiš u frontend-u
-                .addResourceLocations("file:images/"); // Prava putanja na serveru
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:images/");
+
+        registry.addResourceHandler("/compressedImages/**")
+                .addResourceLocations("file:compressedImages/");
     }
 }

@@ -1,5 +1,6 @@
 package com.example.onlybuns.service;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -12,7 +13,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,9 +78,10 @@ public class PostService {
             post.setLongitude(longitude);
             post.setAccount(account); 
             post.setImagePath(file); 
-            System.out.println(file);
             post.setDeleted(false);
             post.setCreationTime(LocalDateTime.now());
+            post.setCompressTime(LocalDateTime.now());
+            post.setIsCompressed(0);
                 
            
             return postRepository.save(post);
@@ -88,6 +94,7 @@ public class PostService {
             Post post = optionalPost.get();
             post.setDescription(newDescription);
             post.setCreationTime(LocalDateTime.now());
+            post.setCompressTime(LocalDateTime.now());
             return postRepository.save(post);
         } else {
             throw new RuntimeException("Post not found or has been deleted");
@@ -156,6 +163,7 @@ public class PostService {
 
     @Transactional
     public Post editPost(Long postId, String newDescription, MultipartFile newFile) throws IOException {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minus(1, ChronoUnit.MONTHS);
         Optional<Post> optionalPost = postRepository.findByIdAndIsDeletedFalse(postId);
         if (optionalPost.isEmpty()) {
             throw new RuntimeException("Post not found or has been deleted");
@@ -171,6 +179,7 @@ public class PostService {
         // Ažuriranje slike
         if (newFile != null && !newFile.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + "_" + newFile.getOriginalFilename();
+           
             String uploadDir = System.getProperty("user.dir") + "/images/";
             File directory = new File(uploadDir);
             if (!directory.exists()) {
@@ -186,7 +195,7 @@ public class PostService {
             if (oldImageFile.exists()) {
                 oldImageFile.delete();
             }
-
+            post.setIsCompressed(0);
             post.setImagePath(fileName);
         }
 
@@ -194,32 +203,50 @@ public class PostService {
         return postRepository.save(post);
     }
 
-
-    /* @Transactional
-    @Scheduled(cron = "0 0 0 * * ?") // Pokreće se svakog dana u ponoć
+    @Transactional
+    @Scheduled(cron = "0 * * * * ?")
     public void compressOldImages() throws IOException {
+    
         List<Post> posts = postRepository.findAll();
         LocalDateTime oneMonthAgo = LocalDateTime.now().minus(1, ChronoUnit.MONTHS);
-
+    
         List<Post> oldPosts = posts.stream()
-            .filter(post -> post.getCreationTime().isBefore(oneMonthAgo) && post.getImagePath() != null)
+            .filter(post -> post.getCompressTime().isBefore(oneMonthAgo) && post.getImagePath() != null && post.getIsCompressed() == 0)
             .collect(Collectors.toList());
-
         for (Post post : oldPosts) {
             String imagePath = post.getImagePath();
-            String imageFullPath = System.getProperty("user.dir") + "/images/" + imagePath;
-            File imageFile = new File(imageFullPath);
-
-            if (imageFile.exists()) {
-                String compressedImagePath = imageFullPath.replace(".png", "_compressed.png");
-                Thumbnails.of(imageFile)
+            
+            String imageNameWithoutExtension = imagePath.substring(0, imagePath.lastIndexOf('.'));
+            String newImagePath = imageNameWithoutExtension + ".jpg";
+            
+            String imageFullPath = System.getProperty("user.dir") + "/compressedImages/" + newImagePath;
+            String imgFullPath = System.getProperty("user.dir") + "/images/" + imagePath;
+            File imgFile = new File(imgFullPath);
+    
+            BufferedImage image = ImageIO.read(imgFile);
+            int width = image.getWidth();
+            int height = image.getHeight();
+    
+            if (width > 800 || height > 800) {
+                Thumbnails.of(imgFile)
                     .size(800, 800)
-                    .outputFormat("png")
-                    .toFile(compressedImagePath);
-                
-                post.setImagePath(compressedImagePath); 
+                    .outputQuality(0.5)
+                    .outputFormat("jpg")
+                    .toFile(imageFullPath);
+    
+                post.setCompressTime(LocalDateTime.now());
+                post.setImagePath(newImagePath);
+                post.setIsCompressed(1);
                 postRepository.save(post);
             }
         }
-    }*/
+    }
+
+    @Cacheable(value = "coordinatesCache", key = "#postId")
+        public String getCoordinatesByPostId(Long postId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
+
+        return "Longitude: " + post.getLongitude() + ", Latitude: " + post.getLatitude();
+    }
 }
