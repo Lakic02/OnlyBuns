@@ -19,7 +19,7 @@
         <div v-if="editingPost && editingPost.id === post.id">
           <textarea 
             v-model="editingPost.description" 
-            class="edit-input"
+            class="posts-edit-input"
             placeholder="Input new text"
           ></textarea>
           
@@ -39,8 +39,8 @@
           </div>
           
           <div class="edit-buttons">
-            <button @click="saveEdit(post.id)" class="save-button">Save changes</button>
-            <button @click="cancelEdit" class="cancel-button">Cancel</button>
+            <button @click="saveEdit(post.id)" class="posts-save-button">Save changes</button>
+            <button @click="cancelEdit" class="posts-cancel-button">Cancel</button>
           </div>
         </div>
         
@@ -283,7 +283,7 @@ export default {
   color: #657786;
 }
 
-.edit-input {
+.posts-edit-input {
   width: 100%;
   min-height: 100px;
   padding: 8px;
@@ -314,28 +314,28 @@ export default {
   margin-top: 10px;
 }
 
-.save-button, .cancel-button {
+.posts-save-button, .posts-cancel-button {
   padding: 6px 12px;
   border-radius: 4px;
   border: none;
   cursor: pointer;
 }
 
-.save-button {
+.posts-save-button {
   background-color: #1da1f2;
   color: white;
 }
 
-.cancel-button {
+.posts-cancel-button {
   background-color: #657786;
   color: white;
 }
 
-.save-button:hover {
+.posts-save-button:hover {
   background-color: #1991da;
 }
 
-.cancel-button:hover {
+.posts-cancel-button:hover {
   background-color: #566b76;
 }
 </style>
