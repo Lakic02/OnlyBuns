@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         if (token != null) {
             try {
                 JWTUser jwtUser = JWTDecoder.verifyToken(token); // Dekodiraj token i preuzmi korisnika
-                System.out.println("JWTUSER ID: "+jwtUser.id);
+                //System.out.println("JWTUSER ID: "+jwtUser.id);
                 if (jwtUser != null) {
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + jwtUser.getRole().toUpperCase());
 

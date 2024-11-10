@@ -43,10 +43,11 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
                                  "/api/authentication/register",
                                  "/api/authentication/jwt/decode",
-                                 "/api/authentication/logIn/**").permitAll() // Dozvoljeno svima 
-                .requestMatchers("/api/authentication/jwt/decode") // Admin end-point-ovi
+                                 "/api/authentication/logIn/**",
+                                 "/api/posts/create/**").permitAll() // Dozvoljeno svima 
+                .requestMatchers("/api/accounts/getAll") // Admin end-point-ovi
                                  .hasAuthority("ROLE_ADMIN") // Samo korisnici sa rolom ADMIN mogu pristupiti
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
