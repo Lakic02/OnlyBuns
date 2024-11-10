@@ -94,6 +94,17 @@ public class PostController {
         postService.addLike(postId, userId);
         return ResponseEntity.ok().build();
     }
+    @DeleteMapping("/dislike/{postId}/{userId}")
+    public ResponseEntity<Void> dislikePost(@PathVariable Long postId, @PathVariable Long userId) throws InterruptedException {
+        postService.removeLike(postId, userId);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/hasLiked/{postId}/{userId}")
+    public ResponseEntity<Boolean> hasUserLikedPost(@PathVariable Long postId, @PathVariable Long userId) {
+        boolean liked = postService.hasUserLikedPost(postId, userId);
+        return ResponseEntity.ok(liked);
+    }
+
 
     @PostMapping("/comment/{postId}/{userId}")
     public ResponseEntity<Void> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestBody Comment comment) {

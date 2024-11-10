@@ -158,11 +158,14 @@ export default {
   },
   
   mounted() {
-    this.fetchPostDetails();
-    this.fetchPostLikes();
-    this.fetchComments();
-    this.loadUser();
-    this.checkIfLiked();
+    this.fetchPostDetails()
+      .then(() => this.fetchPostLikes())  // Nakon fetchPostDetails, poziva se fetchPostLikes
+      .then(() => this.fetchComments())   // Nakon fetchPostLikes, poziva se fetchComments
+      .then(() => this.loadUser())        // Nakon fetchComments, poziva se loadUser
+      .then(() => this.checkIfLiked())    // Na kraju, poziva se checkIfLiked
+    .catch(error => {
+      console.error("An error occurred while fetching data: ", error);
+    });
   },
 
   methods: {
@@ -171,7 +174,7 @@ export default {
       
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/likes/check/${this.$route.params.postId}/${this.loggedInUserId}`
+          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`
         );
         this.isLiked = response.data;
       } catch (error) {
@@ -187,14 +190,14 @@ export default {
       try {
         if (this.isLiked) {
           await axios.delete(
-            `http://localhost:8081/api/posts/likes/unlike/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`
           );
-          this.likes--;
+          this.fetchPostLikes()
         } else {
           await axios.post(
-            `http://localhost:8081/api/posts/likes/like/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`
           );
-          this.likes++;
+          this.fetchPostLikes()
         }
         this.isLiked = !this.isLiked;
       } catch (error) {

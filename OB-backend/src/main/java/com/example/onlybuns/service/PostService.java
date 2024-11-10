@@ -140,45 +140,44 @@ public class PostService {
 
             likeRepository.save(like);
 
-            Thread.sleep(10000);
+            Thread.sleep(500);
         } finally {
             lock.unlock();
             locks.remove(postId, lock);
         }
     }
     
-    // @Transactional
-    // public void removeLike(Long postId, Long userId) throws InterruptedException {
-    //     Lock lock = locks.get(postId);
+    @Transactional
+    public void removeLike(Long postId, Long userId) throws InterruptedException {
+        Lock lock = locks.get(postId);
     
-    //     if (lock == null) {
-    //         lock = new ReentrantLock();
-    //         locks.put(postId, lock);
-    //     }
+        if (lock == null) {
+            lock = new ReentrantLock();
+            locks.put(postId, lock);
+        }
     
-    //     lock.lock();
-    //     try {
-    //         // Proverava da li korisnik već lajkovao post
-    //         Like like = likeRepository.findByPostIdAndAccountId(postId, userId)
-    //             .orElseThrow(() -> new RuntimeException("User has not liked this post."));
+        lock.lock();
+        try {
+            // Proverava da li korisnik već lajkovao post
+            Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
     
-    //         // Uklanja lajk
-    //         likeRepository.delete(like);
+            // Uklanja lajk
+            if(like != null){
+                likeRepository.delete(like);
+            }
     
-    //         Thread.sleep(10000); // Simulacija pauze ako je potrebno
-    //     } finally {
-    //         lock.unlock();
-    //         locks.remove(postId, lock);
-    //     }
-    // }
+            Thread.sleep(500); // Simulacija pauze ako je potrebno
+        } finally {
+            lock.unlock();
+            locks.remove(postId, lock);
+        }
+    }
     
-    // @Transactional
-    // public boolean hasUserLikedPost(Long postId, Long userId) {
-    //     return likeRepository.existsByPostIdAndAccountId(postId, userId);
-    // }
+    @Transactional
+    public boolean hasUserLikedPost(Long postId, Long userId) {
+        return likeRepository.existsByPostIdAndAccountId(postId, userId);
+    }
     
-
-
 
     @Transactional
     public Comment addComment(Long postId, Long userId, Comment comment) {

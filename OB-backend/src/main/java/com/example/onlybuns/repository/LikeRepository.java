@@ -8,6 +8,7 @@ import com.example.onlybuns.domain.Post;
 
 public interface LikeRepository extends JpaRepository<Like,Long>{
     boolean existsByPostIdAndAccountId(Long postId, Long userId);
+    Like findByPostIdAndAccountId(Long postId, Long userId);
 
     // Metoda za brojanje lajkova za određenu objavu
     long countByPost(Post post);
