@@ -5,16 +5,16 @@
       <router-link to="/">Home</router-link>
     </div>
     <div class="nav-links nav-secondary">
-      <router-link to="/LogIn">Log in</router-link>
-      <router-link to="/Registration">Registration</router-link>
+      <router-link to="/LogIn" v-if="!IsLoggedIn">Log in</router-link>
+      <router-link to="/Registration" v-if="!IsLoggedIn">Registration</router-link>
     </div>
     <div class="nav-links nav-secondary" v-if="IsLoggedIn">
-      <router-link to="/CreatePost">Create Post</router-link>
+      <router-link to="/CreatePost" v-if="isRegisteredLoggedIn">Create Post</router-link>
       <router-link to="/Posts">All Posts</router-link>
-      <router-link to="/Users">Check Users</router-link>
+      <router-link to="/Users" v-if="isAdminLoggedIn">Check Users</router-link>
       
       <!-- Padajući meni za prijavljene korisnike -->
-      <div class="dropdown">
+      <div class="dropdown" v-if="IsLoggedIn">
         <button class="dropbtn">Menu</button>
         <div class="dropdown-content">
           <router-link to="/FollowedPosts">Followed Posts</router-link>
@@ -25,7 +25,7 @@
         </div>
       </div>
     </div>
-    <div class="nav-links nav-secondary">
+    <div class="nav-links nav-secondary" v-if="IsLoggedIn">
       <div class="header-user-info">
         <router-link class="userLogo" to="/User">
           <p class="username">{{ username }}</p>
@@ -33,7 +33,7 @@
         </router-link>
       </div>
     </div>
-    <div class="nav-links nav-secondary">
+    <div class="nav-links nav-secondary" v-if="IsLoggedIn">
       <router-link to="/" @click="LogOutClick()">Log Out</router-link>
     </div>
   </nav>
@@ -85,31 +85,11 @@ data(){
     username: '',
     role: '',
     isAdminLoggedIn:false,
+    isRegisteredLoggedIn:false
   }
 },
 async mounted(){
-  const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
-        if (response.status === 200) {
-          const {id, username, role } = response.data;
-          console.log('username')
-          console.log(username)
-          this.username = username;
-          this.role = role;
-          this.userId = id;
-          this.LogInVisible=false
-          this.IsLoggedIn=true
-          this.$router.push('/')
-        }
-        else{
-          this.SetDefaultVisibilities()
-        }
-      } catch (error) {
-        console.error('Failed to decode token:', error);
-      }
-    }
+  this.HandleLogInSuccess()
 },
 methods:{
   scrollToTop() {
@@ -132,6 +112,7 @@ methods:{
           this.userId = id;
           this.LogInVisible=false
           this.IsLoggedIn=true
+          this.CheckRole(this.role)
           this.$router.push('/')
         }
         else{
@@ -147,9 +128,23 @@ methods:{
     localStorage.clear()
     window.location.reload()
   },
+  CheckRole(role){
+    if(role === 'admin'){
+      this.isAdminLoggedIn=true
+      this.isRegisteredLoggedIn=false
+    }else if(role === 'registered'){
+      this.isAdminLoggedIn=false
+      this.isRegisteredLoggedIn=true
+    }
+    else{
+      this.isAdminLoggedIn=false
+      this.isRegisteredLoggedIn=false
+    }
+  },
   SetDefaultVisibilities(){
     this.IsLoggedIn=false
     this.isAdminLoggedIn=false
+    this.isRegisteredLoggedIn=false
   }
 }
 }

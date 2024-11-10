@@ -1,7 +1,7 @@
 <template>
   <h1 class="admin-posts-title">Check All Posts</h1>
   <div class="post-container">
-    <div v-for="post in posts" :key="post.id" class="post-card">
+    <div v-for="post in posts" :key="post.id" class="post-card" @click="navigateToPostDetails(post.id)">
       <div class="post-header">
         <img v-if="post.account.profileImage" :src="post.account.profileImage" alt="User Profile" class="profile-image" />
         <div>
@@ -53,7 +53,6 @@
       
       <div class="post-footer">
         <span>{{ postLikes[post.id] || 0 }} Likes</span>
-        <span>Comments...</span>
       </div>
     </div>
   </div>
@@ -91,6 +90,9 @@ export default {
       this.editingPost = null;
       this.newImage = null;
       this.imagePreview = null;
+    },
+    navigateToPostDetails(postId) {
+      this.$router.push({ name: 'PostDetails', params: { postId } });
     },
     handleImageChange(event) {
       const selectedFile = event.target.files[0];
@@ -228,7 +230,8 @@ export default {
   border: 1px solid #e1e8ed;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .post-header {
@@ -344,5 +347,10 @@ export default {
 
 .posts-cancel-button:hover {
   background-color: #566b76;
+}
+.post-card:hover {
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Povećana senka */
+  transform: scale(1.02); /* Blago povećanje kartice */
 }
 </style>

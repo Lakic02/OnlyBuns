@@ -29,7 +29,7 @@ public class AccountController {
           @RequestParam(defaultValue = "999") int size,
           @RequestParam(defaultValue = "email") String sortField,
           @RequestParam(defaultValue = "asc") String sortDir) {
-          System.out.println("USLOOO");
+          //System.out.println("USLOOO");
     return accountService.getAccounts(firstName, lastName, email, address, minPosts, maxPosts, page, size, sortField, sortDir);
   }
 

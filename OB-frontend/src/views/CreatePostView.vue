@@ -5,7 +5,7 @@
       
       <label for="file" class="file-label">
         Choose File
-        <input type="file" id="file" @change="handleFileUpload" required class="file-input" />
+        <input type="file" id="file" @change="handleFileUpload" required class="file-input" accept="image/*"/>
       </label>
       
       <div v-if="fileName" class="file-info">

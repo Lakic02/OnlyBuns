@@ -55,6 +55,10 @@ public class PostService {
     public List<Post> getPosts(){
         return postRepository.findAllByIsDeletedFalse();
     }
+    public Optional<Post> findById(Long id) {
+        return postRepository.findById(id);
+    }
+    
     // Brojanje lajkova za objavu
     @Transactional
     public long countLikesForPost(Post post) {
@@ -115,7 +119,7 @@ public class PostService {
 
 
     @Transactional
-    public void addLike(Long postId, Long userId) {
+    public void addLike(Long postId, Long userId) throws InterruptedException {
         Lock lock = locks.get(postId);
 
         if (lock == null) {
@@ -136,11 +140,45 @@ public class PostService {
 
             likeRepository.save(like);
 
+            Thread.sleep(10000);
         } finally {
             lock.unlock();
             locks.remove(postId, lock);
         }
     }
+    
+    // @Transactional
+    // public void removeLike(Long postId, Long userId) throws InterruptedException {
+    //     Lock lock = locks.get(postId);
+    
+    //     if (lock == null) {
+    //         lock = new ReentrantLock();
+    //         locks.put(postId, lock);
+    //     }
+    
+    //     lock.lock();
+    //     try {
+    //         // Proverava da li korisnik već lajkovao post
+    //         Like like = likeRepository.findByPostIdAndAccountId(postId, userId)
+    //             .orElseThrow(() -> new RuntimeException("User has not liked this post."));
+    
+    //         // Uklanja lajk
+    //         likeRepository.delete(like);
+    
+    //         Thread.sleep(10000); // Simulacija pauze ako je potrebno
+    //     } finally {
+    //         lock.unlock();
+    //         locks.remove(postId, lock);
+    //     }
+    // }
+    
+    // @Transactional
+    // public boolean hasUserLikedPost(Long postId, Long userId) {
+    //     return likeRepository.existsByPostIdAndAccountId(postId, userId);
+    // }
+    
+
+
 
     @Transactional
     public Comment addComment(Long postId, Long userId, Comment comment) {
@@ -204,7 +242,7 @@ public class PostService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void compressOldImages() throws IOException {
     
         List<Post> posts = postRepository.findAll();
@@ -215,7 +253,6 @@ public class PostService {
             .collect(Collectors.toList());
         for (Post post : oldPosts) {
             String imagePath = post.getImagePath();
-            
             String imageNameWithoutExtension = imagePath.substring(0, imagePath.lastIndexOf('.'));
             String newImagePath = imageNameWithoutExtension + ".jpg";
             

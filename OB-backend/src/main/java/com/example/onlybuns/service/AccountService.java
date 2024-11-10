@@ -78,13 +78,13 @@ public class AccountService {
         resultList.sort(comparator);
     
         // Ispis svih pronađenih naloga (sortirano i filtrirano)
-        System.out.println("Svi pronađeni nalozi (sortirani):");
-        for (Account account : resultList) {
-            System.out.println("ID: " + account.getId() +
-                               ", First Name: " + account.getFirstName() +
-                               ", Last Name: " + account.getLastName() +
-                               ", Email: " + account.getEmail());
-        }
+        // System.out.println("Svi pronađeni nalozi (sortirani):");
+        // for (Account account : resultList) {
+        //     System.out.println("ID: " + account.getId() +
+        //                        ", First Name: " + account.getFirstName() +
+        //                        ", Last Name: " + account.getLastName() +
+        //                        ", Email: " + account.getEmail());
+        // }
     
         // Ako nije pronađeno nijedno podudaranje, vrati praznu listu
         if (resultList.isEmpty()) {

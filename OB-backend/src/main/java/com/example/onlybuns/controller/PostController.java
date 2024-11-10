@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,11 @@ public class PostController {
     @GetMapping("/getAll")
     public ResponseEntity<List<Post>> getPosts() {
         return ResponseEntity.ok(postService.getPosts());
+    }
+    @GetMapping("/findById/{id}")
+    public ResponseEntity<Post> getPostById(@PathVariable Long id) {
+        Optional<Post> post = postService.findById(id);
+        return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/likes/count/{postId}")
@@ -84,7 +90,7 @@ public class PostController {
     }
 
     @PostMapping("/like/{postId}/{userId}")
-    public ResponseEntity<Void> likePost(@PathVariable Long postId, @PathVariable Long userId) {
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, @PathVariable Long userId) throws InterruptedException {
         postService.addLike(postId, userId);
         return ResponseEntity.ok().build();
     }
