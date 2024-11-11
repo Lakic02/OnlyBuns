@@ -20,8 +20,7 @@ public interface LikeRepository extends JpaRepository<Like,Long>{
     // Metoda za proveru da li je korisnik već lajkovao određenu objavu
     boolean existsByPostAndAccount(Post post, Account account);
 
-    @Query("SELECT COUNT(l) FROM Like l WHERE l.post.account.id = :account " +
-           "AND l.creationTime > :sevenDaysAgo")
-    long countLikesByAccountInLast7Days(@Param("account") Account account, 
-                                        @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.post.account.id = :accountId AND l.creationTime > :sevenDaysAgo")
+    long countLikesByAccountInLast7Days(@Param("accountId") Long accountId, 
+                                    @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
 }

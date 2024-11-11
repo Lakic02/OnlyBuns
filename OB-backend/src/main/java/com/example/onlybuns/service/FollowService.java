@@ -85,6 +85,7 @@ public class FollowService {
         Follow follow = new Follow();
         follow.setFollower(follower);
         follow.setFollowed(followed);
+        follow.setFollowDate(LocalDateTime.now());
   
         followRepository.save(follow);
   

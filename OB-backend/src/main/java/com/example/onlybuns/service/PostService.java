@@ -56,8 +56,6 @@ public class PostService {
     @Autowired
     private FollowRepository followRepository;
 
-    @Autowired
-    private FollowRepository followRepository;
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
     
@@ -316,5 +314,15 @@ public class PostService {
         return "Longitude: " + post.getLongitude() + ", Latitude: " + post.getLatitude();
     }
 
+    public boolean canComment(Long postId, Long userId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Long accountId = post.getAccount().getId(); 
+
+        boolean isFollowing = followRepository.existsByFollowerIdAndFollowedId(userId, accountId);
+
+        return isFollowing;
+    }
     
 }

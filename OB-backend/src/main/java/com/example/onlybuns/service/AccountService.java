@@ -152,9 +152,8 @@ public class AccountService {
     }
 
     
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void scheduleInactiveUserNotifications() {
-        System.out.println("Salje se mejl");
         notificationService.sendInactiveUserNotifications();
     }
 }

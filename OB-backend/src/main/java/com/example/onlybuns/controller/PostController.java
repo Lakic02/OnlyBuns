@@ -29,6 +29,7 @@ public class PostController {
     @Autowired
     private PostService postService;
     
+    
     @GetMapping("/getAll")
     public ResponseEntity<List<Post>> getPosts() {
         return ResponseEntity.ok(postService.getPosts());
@@ -137,9 +138,13 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/posts/coordinates/{postId}")
+    @GetMapping("/coordinates/{postId}")
     public String getPostCoordinates(@PathVariable Long postId) {
         return postService.getCoordinatesByPostId(postId);
     }
-    
-}
+
+    @GetMapping("/canComment/{postId}/{userId}")
+    public ResponseEntity<Boolean> createComment(@PathVariable Long postId, @PathVariable Long userId) {
+        return ResponseEntity.ok(postService.canComment(postId, userId));
+    }
+ }

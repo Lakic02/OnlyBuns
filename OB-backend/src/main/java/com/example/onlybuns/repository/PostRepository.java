@@ -1,10 +1,12 @@
 package com.example.onlybuns.repository;
 
+import org.antlr.v4.runtime.atn.SemanticContext.AND;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.onlybuns.domain.Account;
+import com.example.onlybuns.domain.Follow;
 import com.example.onlybuns.domain.Post;
 
 import java.time.LocalDateTime;
@@ -17,9 +19,8 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     int countByAccountId(Long accountId);
     List<Post> findAllByAccountIdIn(List<Long> accountIds);
 
-    /*@Query("SELECT p FROM Post p WHERE p.account.id IN " +
-           "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :follower) " +
-           "AND p.creationTime > :sevenDaysAgo")
-    List<Post> findPostsByFollowedAccountsInLast7Days(@Param("follower") Account follower, 
-                                                      @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);*/
+    @Query("SELECT p FROM Post p WHERE p.account IN (SELECT f.followed FROM Follow f WHERE f.follower.id = :followerId) AND p.creationTime > :sevenDaysAgo")
+    List<Post> findPostsByFollowedAccountsInLast7Days(@Param("followerId") Long followerId, 
+                                                  @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+
 }

@@ -137,7 +137,7 @@
       </div>
 
       <!-- New Comment Form -->
-      <div class="pd-new-comment">
+      <div class="pd-new-comment" v-if="canComment">
         <textarea 
           v-model="newCommentText" 
           placeholder="Add a comment..." 
@@ -176,6 +176,7 @@ export default {
       newCommentText: "",
       errorMessage: "",
       displayedComments: [],
+      canComment: false
     };
   },
   
@@ -185,6 +186,7 @@ export default {
       .then(() => this.fetchComments())   // Nakon fetchPostLikes, poziva se fetchComments
       .then(() => this.loadUser())        // Nakon fetchComments, poziva se loadUser
       .then(() => this.checkIfLiked())    // Na kraju, poziva se checkIfLiked
+      .then(() => this.canCommentOnPost())
     .catch(error => {
       console.error("An error occurred while fetching data: ", error);
     });
@@ -287,6 +289,16 @@ export default {
       } catch (error) {
         console.error('Error fetching likes:', error);
       }
+    },
+    async canCommentOnPost(){
+        const response = await axios.get(
+          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`)
+        if(response.data){
+          this.canComment=true;
+        }
+        else{
+          this.canComment=false;
+        }
     },
     async addComment() {
       if (!this.newCommentText.trim()) {

@@ -3,7 +3,6 @@ package com.example.onlybuns.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.onlybuns.domain.Account;
@@ -46,8 +45,8 @@ public class NotificationService {
 
     private void sendEmail(Account account) {
         long likesCount = getLikesCountForLast7Days(account);
-        //long newFollowersCount = getNewFollowersCountForLast7Days(account);
-        //long postsCount = getNewPostsFromFollowedAccounts(account);
+        long newFollowersCount = getNewFollowersCountForLast7Days(account);
+        long postsCount = getNewPostsFromFollowedAccounts(account);
     
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(account.getEmail());
@@ -57,13 +56,12 @@ public class NotificationService {
             "Dear %s,\n\n" +
             "In the last 7 days, the following activities have been recorded on your account:\n\n" +
             "- %d new likes on your posts\n" +
-            "- new followers\n" +
-            "-  new posts\n\n" +
+            "- %d new followers\n" +
+            "- %d new posts\n\n" +
             "Thank you for using our app! Enjoy your continued experience.",
-            account.getFirstName(), likesCount/*, newFollowersCount, postsCount */ );
-    System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            account.getFirstName(), likesCount, newFollowersCount, postsCount );
+
         message.setText(emailText);
-        System.out.println("aaaaagyftydr4e4ss6t76ygaaaaaaaaaaaaaaaaaaaaaaaaa");
         try {
             mailSender.send(message);
         } catch (Exception e) {
@@ -74,19 +72,19 @@ public class NotificationService {
     @Transactional
     public long getLikesCountForLast7Days(Account account) {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        return likeRepository.countLikesByAccountInLast7Days(account, sevenDaysAgo);
+        return likeRepository.countLikesByAccountInLast7Days(account.id, sevenDaysAgo);
     }
 
-    /*@Transactional
+    @Transactional
     public long getNewPostsFromFollowedAccounts(Account account) {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        List<Post> newPosts = postRepository.findPostsByFollowedAccountsInLast7Days(account, sevenDaysAgo);
+        List<Post> newPosts = postRepository.findPostsByFollowedAccountsInLast7Days(account.id, sevenDaysAgo);
         return newPosts.size();
     }
 
     @Transactional
     public long getNewFollowersCountForLast7Days(Account account) {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        return followRepository.countNewFollowersForAccount(account, sevenDaysAgo);
-    }*/
+        return followRepository.countNewFollowersForAccount(account.id, sevenDaysAgo);
+    }
 }

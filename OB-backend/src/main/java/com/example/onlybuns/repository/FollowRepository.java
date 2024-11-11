@@ -31,8 +31,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long>{
   boolean existsByFollowerIdAndFollowedId(Long followerId, Long followedId);
 
 
- /*  @Query("SELECT COUNT(f) FROM Follow f WHERE f.followedAccount.id = :account " +
-           "AND f.followDate > :sevenDaysAgo")
-  long countNewFollowersForAccount(@Param("account") Account account, 
-                                      @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);*/
+  @Query("SELECT COUNT(f) FROM Follow f WHERE f.followed.id = :accountId AND f.followDate > :sevenDaysAgo")
+  long countNewFollowersForAccount(@Param("accountId") Long accountId, 
+                                 @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+
 }
