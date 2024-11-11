@@ -12,6 +12,7 @@ public class AuthenticationService {
     @Autowired
     private AccountRepository accountRepository;
 
+    //public Account updateAccount(Account acc){ return accountRepository.update(acc);}
     public Account registerAccount(Account acc){
         return accountRepository.save(acc);
     }
