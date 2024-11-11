@@ -105,8 +105,8 @@ methods:{
         const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
         if (response.status === 200) {
           const {id, username, role } = response.data;
-          console.log('username')
-          console.log(username)
+          //console.log('username')
+          //console.log(username)
           this.username = username;
           this.role = role;
           this.userId = id;

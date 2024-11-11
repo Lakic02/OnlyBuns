@@ -15,6 +15,7 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     Optional<Post> findByIdAndIsDeletedFalse(Long id);
     List<Post> findAllByIsDeletedFalse();
     int countByAccountId(Long accountId);
+    List<Post> findAllByAccountIdIn(List<Long> accountIds);
 
     /*@Query("SELECT p FROM Post p WHERE p.account.id IN " +
            "(SELECT f.followed.id FROM Follow f WHERE f.follower.id = :follower) " +

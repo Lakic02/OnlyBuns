@@ -32,6 +32,16 @@ public class AccountController {
           //System.out.println("USLOOO");
     return accountService.getAccounts(firstName, lastName, email, address, minPosts, maxPosts, page, size, sortField, sortDir);
   }
+  @GetMapping("/getById/{accountId}")
+    public ResponseEntity<Account> getAccountById(@PathVariable Long accountId) {
+      Account account = accountService.getAccountById(accountId);
+      if (account != null) {
+        return new ResponseEntity<>(account, HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Vraća 404 ako korisnik nije pronađen
+      }
+    }
+
 
   // Endpoint za brojanje objava korisnika
   @GetMapping("/countPosts/{accountId}")

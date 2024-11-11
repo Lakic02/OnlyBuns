@@ -52,6 +52,9 @@ public class PostService {
 
     @Autowired
     private CommentRepository commentRepository;
+    
+    @Autowired
+    private FollowRepository followRepository;
 
     @Autowired
     private FollowRepository followRepository;
@@ -64,6 +67,15 @@ public class PostService {
     }
     public Optional<Post> findById(Long id) {
         return postRepository.findById(id);
+    }
+    
+    @Transactional
+    public List<Post> getFollowedUsersPosts(Long userId) {
+        // Dohvati sve korisnike koje trenutni korisnik prati
+        List<Long> followedUserIds = followRepository.findFollowedUserIdsByUserId(userId);
+        
+        // Dohvati sve postove od tih korisnika
+        return postRepository.findAllByAccountIdIn(followedUserIds);
     }
     
     // Brojanje lajkova za objavu

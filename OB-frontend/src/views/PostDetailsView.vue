@@ -11,7 +11,8 @@
             class="pd-profile-image"
           />
           <div class="pd-user-details">
-            <h3 class="pd-username">{{ post.account.userName }}</h3>
+            <h3 @click="loggedInUserId !== post.account.id ? navigateToUser(post.account.id) : null" 
+                style="cursor: pointer;" class="pd-username">{{ post.account.userName }}</h3>
             <p class="pd-post-time">{{ formatDate(post.creationTime) }}</p>
           </div>
           <!-- Added Post Actions -->
@@ -256,7 +257,9 @@ export default {
         console.error('Error fetching post details:', error);
       }
     },
-
+    navigateToUser(userId) {
+      this.$router.push({ name: 'CheckUser', params: { userId } });
+    },
     async fetchPostFile() {
       try {
         const response = await axios.get(
