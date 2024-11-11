@@ -33,9 +33,6 @@ public class Post {
     @JoinColumn(name = "acc_id")
     private Account account;
 
-   
-
-
     public Long getId() {
         return id;
     }

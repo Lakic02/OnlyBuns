@@ -110,25 +110,43 @@
 
       <!-- Comments Section -->
       <div class="pd-comments-section">
-        <h4 class="pd-comments-title">Comments</h4>
-        <div v-if="comments.length" class="pd-comments-list">
-          <div v-for="comment in comments" :key="comment.id" class="pd-comment">
-            <img 
-              v-if="comment.account.profileImage" 
-              :src="comment.account.profileImage" 
-              alt="Commenter" 
-              class="pd-commenter-image"
-            />
-            <div class="pd-comment-content">
-              <p class="pd-commenter-name">{{ comment.account.userName }}</p>
-              <p class="pd-comment-text">{{ comment.text }}</p>
-              <p class="pd-comment-time">{{ formatDate(comment.creationTime) }}</p>
-            </div>
+      <h4 class="pd-comments-title">Comments</h4>
+
+      <div v-if="displayedComments.length" class="pd-comments-list">
+        <div v-for="comment in displayedComments" :key="comment.id" class="pd-comment">
+          <img 
+            v-if="comment.account.profileImage" 
+            :src="comment.account.profileImage" 
+            alt="Commenter" 
+            class="pd-commenter-image"
+          />
+          <div class="pd-comment-content">
+            <p class="pd-commenter-name">{{ comment.account.userName }}</p>
+            <p class="pd-comment-text">{{ comment.text }}</p>
+            <p class="pd-comment-time">{{ formatDate(comment.creationTime) }}</p>
           </div>
         </div>
-        <p v-else class="pd-no-comments">No comments yet</p>
       </div>
-    </div>
+
+      <p v-else class="pd-no-comments">No comments yet</p>
+
+      <!-- Show more button -->
+      <div v-if="displayedComments.length < comments.length" class="pd-show-more-comments">
+        <button @click="loadMoreComments" class="pd-load-more-button">Show more comments</button>
+      </div>
+
+      <!-- New Comment Form -->
+      <div class="pd-new-comment">
+        <textarea 
+          v-model="newCommentText" 
+          placeholder="Add a comment..." 
+          class="pd-new-comment-input"
+        ></textarea>
+        <button @click="addComment" class="pd-add-comment-button">Post Comment</button>
+          </div>
+            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+          </div>
+        </div>
 
     <!-- Loading State -->
     <div v-else class="pd-loading-state">
@@ -153,7 +171,10 @@ export default {
       editingPost: null,
       newImage: null,
       imagePreview: null,
-      isLiked: false
+      isLiked: false,
+      newCommentText: "",
+      errorMessage: "",
+      displayedComments: [],
     };
   },
   
@@ -169,6 +190,10 @@ export default {
   },
 
   methods: {
+    loadMoreComments() {
+      const nextComments = this.comments.slice(this.displayedComments.length, this.displayedComments.length + 5);
+      this.displayedComments = [...this.displayedComments, ...nextComments];
+    },
     async checkIfLiked() {
       if (!this.loggedInUserId) return;
       
@@ -260,13 +285,44 @@ export default {
         console.error('Error fetching likes:', error);
       }
     },
+    async addComment() {
+      if (!this.newCommentText.trim()) {
+        return; 
+      }
+      this.errorMessage = ''
+      try {
+        const formData = new FormData();
+        formData.append("text", this.newCommentText);
 
+
+        const response = await axios.post(
+          `http://localhost:8081/api/posts/comment/${this.$route.params.postId}/${this.loggedInUserId}`,
+          formData);
+        if (response.status === 200) {
+          this.newCommentText = "";
+          this.fetchComments()
+        }
+
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+            this.errorMessage = "You can post up to 60 comments per hour.";
+            this.newCommentText = "";
+        } else {
+            this.errorMessage = "An error occurred while posting the comment.";
+        }
+        console.error('Error posting comment:', error);
+      }
+    },
     async fetchComments() {
       try {
         const response = await axios.get(
           `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`
         );
-        this.comments = response.data;
+        
+        this.comments = response.data.sort((a, b) => new Date(b.creationTime) - new Date(a.creationTime));
+
+        this.displayedComments = this.comments.slice(0, 5);
+
       } catch (error) {
         console.error('Error fetching comments:', error);
         this.comments = [];
@@ -669,5 +725,52 @@ export default {
 
 .pd-cancel-button:hover {
   background-color: #f3f4f6;
+}
+.pd-new-comment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pd-new-comment-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.pd-add-comment-button {
+  padding: 0.5rem 1rem;
+  background-color: #e56b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-add-comment-button:hover {
+  background-color: #d75555;
+}
+
+.error-message{
+  color: red;
+}
+.pd-show-more-comments {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.pd-load-more-button {
+  background-color: #e56b6b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-load-more-button:hover {
+  background-color: #d75555;
 }
 </style>

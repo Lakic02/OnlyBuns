@@ -18,6 +18,8 @@ import javax.imageio.ImageIO;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -180,19 +182,30 @@ public class PostService {
     
 
     @Transactional
-    public Comment addComment(Long postId, Long userId, Comment comment) {
+    public Comment addComment(Long postId, Long userId, String commentTxt) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
         
         Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+
+        long commentCount = commentRepository.countByAccountIdAndCreationTimeAfter(userId, oneHourAgo);
+
+        if (commentCount >= 60) {
+            throw new RuntimeException("Comment limit reached. You can post up to 60 comments per hour.");
+        }
+        Comment comment = new Comment();
+
         comment.setPost(post);
         comment.setAccount(account);
+        comment.setText(commentTxt);
         comment.setCreationTime(LocalDateTime.now());
 
         return commentRepository.save(comment);
     }
+
     @Transactional
     public Post getPostById(Long id) {
        return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found with ID: " + id));

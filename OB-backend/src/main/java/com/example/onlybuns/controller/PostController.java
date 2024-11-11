@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -107,9 +108,14 @@ public class PostController {
 
 
     @PostMapping("/comment/{postId}/{userId}")
-    public ResponseEntity<Void> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestBody Comment comment) {
-        postService.addComment(postId, userId, comment);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestParam("text") String commentTxt) {
+        try {
+            postService.addComment(postId, userId, commentTxt);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(e.getMessage());  
+        }
     }
 
     @GetMapping("/getFile/{postId}")
