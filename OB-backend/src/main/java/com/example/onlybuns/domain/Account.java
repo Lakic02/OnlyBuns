@@ -1,6 +1,8 @@
 package com.example.onlybuns.domain;
 
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -27,6 +29,9 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     public Role role;
+
+    @Column(name = "last_login")
+    public LocalDateTime lastLogin;
 
 
     public long getId() {
@@ -97,6 +102,14 @@ public class Account {
         admin,
         registered,
         unauthenticated
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
 }

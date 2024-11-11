@@ -2,8 +2,14 @@ package com.example.onlybuns.repository;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.example.onlybuns.domain.Account;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.*;
 
 @Repository
@@ -18,6 +24,9 @@ public interface AccountRepository extends JpaRepository<Account,Long>{
 
     Page<Account> findByFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCase(
         String firstName, String lastName, String email, Pageable pageable);
+    
+    @Query("SELECT a FROM Account a WHERE a.lastLogin < :lastActiveDate")
+    List<Account> findInactiveUsers(@Param("lastActiveDate") LocalDateTime lastActiveDate);
 
 //@Query("SELECT a FROM Account a WHERE (a.postCount >= :minPosts OR :minPosts IS NULL) AND (a.postCount <= :maxPosts OR :maxPosts IS NULL)")
 //Page<Account> findByPostCountBetween(@Param("minPosts") Integer minPosts, @Param("maxPosts") Integer maxPosts, Pageable pageable);

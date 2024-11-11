@@ -4,6 +4,7 @@ import com.example.onlybuns.config.JWTDecoder;
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.domain.JWTUser;
 import com.example.onlybuns.domain.Token;
+import com.example.onlybuns.service.AccountService;
 import com.example.onlybuns.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,9 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationService authenticationService;
+
+    @Autowired
+    private AccountService accountService;
 
     /*@PostMapping("/register") //mozda bi trebalo AccountDTO jer je sa fronta,razmislicu jos
     public ResponseEntity<JWTUser> registerAccount(@RequestBody Account acc){
@@ -44,6 +48,7 @@ public class AuthenticationController {
             if (acc != null) {
                 JWTUser jwtUser = new JWTUser(acc.getId(), acc.getUserName(), acc.getRole().toString());
                 String token = JWTDecoder.createToken(jwtUser, 604800000L);
+                accountService.updateLastLogin(acc);
                 return ResponseEntity.ok(token);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

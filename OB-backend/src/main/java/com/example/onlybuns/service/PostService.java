@@ -3,6 +3,7 @@ package com.example.onlybuns.service;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -30,6 +31,7 @@ import com.example.onlybuns.domain.Like;
 import com.example.onlybuns.domain.Post;
 import com.example.onlybuns.repository.AccountRepository;
 import com.example.onlybuns.repository.CommentRepository;
+import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
@@ -50,6 +52,9 @@ public class PostService {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    private FollowRepository followRepository;
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
     
@@ -298,4 +303,6 @@ public class PostService {
 
         return "Longitude: " + post.getLongitude() + ", Latitude: " + post.getLatitude();
     }
+
+    
 }

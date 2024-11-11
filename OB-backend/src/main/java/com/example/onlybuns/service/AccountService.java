@@ -3,12 +3,14 @@ package com.example.onlybuns.service;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.repository.AccountRepository;
 import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.PostRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,9 @@ public class AccountService {
     private PostRepository postRepository;
     @Autowired
     private FollowRepository followRepository;
+    @Autowired
+    private NotificationService notificationService;
+
 
     public Page<Account> getAccounts(String firstName, String lastName, String email, String address, Integer minPosts, Integer maxPosts, int page, int size, String sortField, String sortDir) {
         PageRequest pageRequest = PageRequest.of(page, size);
@@ -110,4 +115,15 @@ public class AccountService {
         return followRepository.countByFollowedId(accountId);
     }
 
+    public void updateLastLogin(Account account) {
+        account.setLastLogin(LocalDateTime.now());
+        accountRepository.save(account); 
+    }
+
+    
+    @Scheduled(cron = "0 * * * * ?")
+    public void scheduleInactiveUserNotifications() {
+        System.out.println("Salje se mejl");
+        notificationService.sendInactiveUserNotifications();
+    }
 }
