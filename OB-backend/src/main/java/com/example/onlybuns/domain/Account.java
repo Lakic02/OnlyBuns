@@ -27,7 +27,9 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     public Role role;
-
+    
+    @Column(name = "follower_count")
+    private int followerCount = 0;
 
     public long getId() {
         return id;
@@ -92,6 +94,15 @@ public class Account {
     public void setRole(Role role) {
         this.role = role;
     }
+
+    public int getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+
     
     public enum Role {
         admin,

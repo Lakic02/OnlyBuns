@@ -36,7 +36,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in users.content" :key="user.id" class="admin-users-tr">
+          <tr v-for="user in users.content" :key="user.id" class="admin-users-tr" 
+          @click="navigateToUser(user.id)" style="cursor: pointer;">
             <td class="admin-users-td">{{ user.firstName }}</td>
             <td class="admin-users-td">{{ user.lastName }}</td>
             <td class="admin-users-td">{{ user.email }}</td>
@@ -81,7 +82,7 @@ export default {
       sortField: 'email',
       sortDir: 'asc',
       currentPage: 0,
-      pageSize: 999,
+      pageSize: 5,
     };
   },
   mounted() {
@@ -108,7 +109,7 @@ export default {
         },
       })
       .then(async (response) => {
-        this.users.content = response.data.content;
+        this.users = response.data;
 
         for (let user of this.users.content) {
           const postResponse = await axios.get(`http://localhost:8081/api/accounts/countPosts/${user.id}`, {
@@ -131,10 +132,13 @@ export default {
       });
     },
     changePage(pageNumber) {
-      if (pageNumber >= 0 && pageNumber < this.users.pageable.totalPages) {
+      if (pageNumber >= 0 && pageNumber < this.users.totalPages) {
         this.currentPage = pageNumber;
         this.fetchUsers();
       }
+    },
+    navigateToUser(userId) {
+      this.$router.push({ name: 'CheckUser', params: { userId } });
     },
   }
 };

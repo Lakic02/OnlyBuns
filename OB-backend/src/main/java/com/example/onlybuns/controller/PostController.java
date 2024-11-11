@@ -37,6 +37,11 @@ public class PostController {
         Optional<Post> post = postService.findById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+    @GetMapping("/followed/{userId}")
+    public ResponseEntity<List<Post>> getFollowedUsersPosts(@PathVariable Long userId) {
+        List<Post> posts = postService.getFollowedUsersPosts(userId);
+        return ResponseEntity.ok(posts);
+    }
 
     @GetMapping("/likes/count/{postId}")
     public ResponseEntity<Long> getLikesCount(@PathVariable Long postId) {

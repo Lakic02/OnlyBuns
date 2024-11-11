@@ -10,12 +10,19 @@ public class Follow {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "follower_id", nullable = false)
+  @JoinColumn(name = "follower_id", nullable = false) //prati
   private Account follower;
 
   @ManyToOne
-  @JoinColumn(name = "followed_id", nullable = false)
+  @JoinColumn(name = "followed_id", nullable = false) //je zapracen
   private Account followed;
+
+  ////////////////////////////
+  /// 
+  /// POLJE DATUMMMMMM
+  /// ///
+  /// 
+  /// 
 
   // Getters and Setters
   public Long getId() {

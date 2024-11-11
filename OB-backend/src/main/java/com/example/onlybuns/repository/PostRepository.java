@@ -10,4 +10,5 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     Optional<Post> findByIdAndIsDeletedFalse(Long id);
     List<Post> findAllByIsDeletedFalse();
     int countByAccountId(Long accountId);
+    List<Post> findAllByAccountIdIn(List<Long> accountIds);
 }
