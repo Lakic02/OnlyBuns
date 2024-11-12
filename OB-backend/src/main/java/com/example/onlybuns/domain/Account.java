@@ -1,5 +1,8 @@
 package com.example.onlybuns.domain;
 
+
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -8,17 +11,41 @@ public class Account {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-    @Column(name="name", nullable = false)
-    private String name;
+    public long id;
+
+    public String firstName;
+    public String lastName;
+
     @Column(name = "userName", nullable = false)
-    private String userName;
+    public String userName;
     @Column(name ="email",nullable = false,unique = true)
-    private String email;
+    public String email;
     @Column(name = "password", nullable = false)
-    private String password;
+    public String password;
     @Column(name = "address", nullable = false)
-    private String address;
+    public String address;
+    //@Column(name = "role", nullable = false)
+    //private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    public Role role;
+    // @Column(name = "is_active",nullable = false)
+    // public boolean isActive;
+
+    // public boolean isActive() {
+    //     return isActive;
+    // }
+
+    // public void setActive(boolean active) {
+    //     isActive = active;
+    // }
+
+    public Account(){}    
+    @Column(name = "follower_count")
+    private int followerCount = 0;
+    @Column(name = "last_login")
+    public LocalDateTime lastLogin;
+
 
     public long getId() {
         return id;
@@ -28,12 +55,20 @@ public class Account {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getUserName() {
@@ -67,4 +102,36 @@ public class Account {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public int getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+
+    
+    public enum Role {
+        admin,
+        registered,
+        unauthenticated
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
 }

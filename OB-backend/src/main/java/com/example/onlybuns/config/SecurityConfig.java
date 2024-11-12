@@ -28,16 +28,63 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+    
     @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
+                                 "/api/authentication/register",
+                                 "/api/authentication/jwt/decode",
+                                 "/api/authentication/logIn/**",
+                                 "/api/posts/create/**").permitAll() // Dozvoljeno svima 
+                .requestMatchers("/api/accounts/getAll") // Admin end-point-ovi
+                                 .hasAuthority("ROLE_ADMIN") // Samo korisnici sa rolom ADMIN mogu pristupiti
+                .anyRequest().permitAll()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+
+
+
+    /*@Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Isključi CSRF koristeći novu sintaksu
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/authentication/register").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", 
+                                        "/api/authentication/register",
+                                        "/api/authentication/logIn/**", 
+                                        "/api/authentication/jwt/decode").permitAll()
                         .anyRequest().authenticated()
                 );
 
         return http.build();
-    }
+    }*/
+
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    //     http
+    //         .csrf(csrf -> csrf.disable()) // Isključi CSRF ako nije potreban
+    //         .authorizeHttpRequests(authorize -> authorize
+    //             .anyRequest().permitAll() // Omogući pristup svim korisnicima po defaultu
+    //         )
+    //         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        
+    //     return http.build();
+    // }
+
+
+
 }
