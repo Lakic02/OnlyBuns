@@ -319,13 +319,27 @@ export default {
         }
 
       } catch (error) {
+        // if (error.response && error.response.status === 400) {
+        //     this.errorMessage = "You can post up to 60 comments per hour.";
+        //     this.newCommentText = "";
+        // } else {
+        //     this.errorMessage = "An error occurred while posting the comment.";
+        // }
+        // console.error('Error posting comment:', error);
         if (error.response && error.response.status === 400) {
+    const errorMessage = error.response.data;
+
+        if (errorMessage === "comment_limit_reached") {
             this.errorMessage = "You can post up to 60 comments per hour.";
-            this.newCommentText = "";
+        } else if (errorMessage === "too_many_requests") {
+            this.errorMessage = "Too many requests. Please wait before commenting again.";
         } else {
             this.errorMessage = "An error occurred while posting the comment.";
         }
-        console.error('Error posting comment:', error);
+        this.newCommentText = "";
+    } else {
+        this.errorMessage = "An error occurred while posting the comment.";
+    }
       }
     },
     async fetchComments() {

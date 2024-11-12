@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.onlybuns.config.RateLimiter;
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.domain.Comment;
 import com.example.onlybuns.domain.Like;
@@ -56,6 +57,7 @@ public class PostService {
     @Autowired
     private FollowRepository followRepository;
 
+    private static final RateLimiter rateLimiter = new RateLimiter(5);
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
     
@@ -208,9 +210,22 @@ public class PostService {
 
         long commentCount = commentRepository.countByAccountIdAndCreationTimeAfter(userId, oneHourAgo);
 
-        if (commentCount >= 60) {
+        /*if (commentCount >= 60) {
             throw new RuntimeException("Comment limit reached. You can post up to 60 comments per hour.");
         }
+
+        if (!rateLimiter.isAllowed(userId)) {
+            throw new RuntimeException("Too many requests. Please wait before commenting again.");
+        }*/
+        if (commentCount >= 60) {
+            throw new RuntimeException("comment_limit_reached"); // Ključna reč za ovaj izuzetak
+        }
+    
+        if (!rateLimiter.isAllowed(userId)) {
+            System.out.println("Throwing rate limit exception for user: " + userId);
+            throw new RuntimeException("too_many_requests"); // Ključna reč za rate limit izuzetak
+        }
+
         Comment comment = new Comment();
 
         comment.setPost(post);
