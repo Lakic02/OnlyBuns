@@ -19,5 +19,8 @@ public class AuthenticationService {
     public Account findAccountByUserNameAndPassword(String userName, String password) {
         return accountRepository.findByUserNameAndPassword(userName, password);
     }
+    public Account findAccountByEmailAndPassword(String email,String password){
+        return  accountRepository.findByEmailAndPassword(email,password);
+    }
 
 }

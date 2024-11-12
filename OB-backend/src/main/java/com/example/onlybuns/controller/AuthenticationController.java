@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/authentication")
+@CrossOrigin(origins = "http://localhost:5173") // Vaš frontend URL
 public class AuthenticationController {
 
     @Autowired
@@ -34,7 +35,7 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<String> registerAccount(@RequestBody Account account) {
         try {
-
+            System.out.println("CAOOO");
             account.setRole(Account.Role.unauthenticated);
             account.setActive(false);
             Account acc = authenticationService.registerAccount(account);
@@ -53,7 +54,7 @@ public class AuthenticationController {
 
             return ResponseEntity.ok(token);
         } catch (Exception e) {
-            System.out.println("Add user failed - POST ADD USER");
+            System.out.println("Add user failed - POST ADD USER" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register user");
         }
     }
@@ -84,8 +85,9 @@ public class AuthenticationController {
     @GetMapping("/logIn/{username}/{password}")
     public ResponseEntity<String> logIn(@PathVariable String username, @PathVariable String password) {
         try {
-            Account acc = authenticationService.findAccountByUserNameAndPassword(username, password);
-            if (acc != null) {
+            String email = username;
+            Account acc = authenticationService.findAccountByEmailAndPassword(email, password);
+            if (acc != null && acc.getRole() != Account.Role.unauthenticated) {
                 JWTUser jwtUser = new JWTUser(acc.getId(), acc.getUserName(), acc.getRole().toString());
                 String token = JWTDecoder.createToken(jwtUser, 604800000L);
                 return ResponseEntity.ok(token);

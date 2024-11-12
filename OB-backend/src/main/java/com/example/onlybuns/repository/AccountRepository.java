@@ -10,6 +10,8 @@ import org.springframework.data.domain.*;
 public interface AccountRepository extends JpaRepository<Account,Long>{
     Account findByEmail(String email); //Koristim za prijavu korisnika na sistem
     Account findByUserNameAndPassword(String userName, String password);
+    Account findByEmailAndPassword(String email, String password);
+
 
     Page<Account> findByFirstNameContainingIgnoreCase(String firstName, Pageable pageable);
     Page<Account> findByLastNameContainingIgnoreCase(String lastName, Pageable pageable);
