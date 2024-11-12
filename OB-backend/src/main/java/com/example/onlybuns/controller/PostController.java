@@ -20,6 +20,8 @@ import com.example.onlybuns.domain.Comment;
 import com.example.onlybuns.domain.Post;
 import com.example.onlybuns.service.PostService;
 
+import io.micrometer.core.annotation.Timed;
+
 
 
 @RestController
@@ -66,7 +68,8 @@ public class PostController {
         Post updatedPost = postService.editPost(postId, description, file);
         return ResponseEntity.ok(updatedPost);
     }
-
+    
+    //@Timed(value = "post.creation.time", description = "Time taken to create a post")
     @PostMapping("/create/{accId}")
     public ResponseEntity<Post> createPost(
         @RequestParam("description") String description,
