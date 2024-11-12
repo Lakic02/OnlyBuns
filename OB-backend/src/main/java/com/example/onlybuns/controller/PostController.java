@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ public class PostController {
     @Autowired
     private PostService postService;
     
+    
     @GetMapping("/getAll")
     public ResponseEntity<List<Post>> getPosts() {
         return ResponseEntity.ok(postService.getPosts());
@@ -36,6 +38,11 @@ public class PostController {
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
         Optional<Post> post = postService.findById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    @GetMapping("/followed/{userId}")
+    public ResponseEntity<List<Post>> getFollowedUsersPosts(@PathVariable Long userId) {
+        List<Post> posts = postService.getFollowedUsersPosts(userId);
+        return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/likes/count/{postId}")
@@ -94,11 +101,27 @@ public class PostController {
         postService.addLike(postId, userId);
         return ResponseEntity.ok().build();
     }
+    @DeleteMapping("/dislike/{postId}/{userId}")
+    public ResponseEntity<Void> dislikePost(@PathVariable Long postId, @PathVariable Long userId) throws InterruptedException {
+        postService.removeLike(postId, userId);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/hasLiked/{postId}/{userId}")
+    public ResponseEntity<Boolean> hasUserLikedPost(@PathVariable Long postId, @PathVariable Long userId) {
+        boolean liked = postService.hasUserLikedPost(postId, userId);
+        return ResponseEntity.ok(liked);
+    }
+
 
     @PostMapping("/comment/{postId}/{userId}")
-    public ResponseEntity<Void> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestBody Comment comment) {
-        postService.addComment(postId, userId, comment);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestParam("text") String commentTxt) {
+        try {
+            postService.addComment(postId, userId, commentTxt);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(e.getMessage());  
+        }
     }
 
     @GetMapping("/getFile/{postId}")
@@ -115,9 +138,13 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/posts/coordinates/{postId}")
+    @GetMapping("/coordinates/{postId}")
     public String getPostCoordinates(@PathVariable Long postId) {
         return postService.getCoordinatesByPostId(postId);
     }
-    
-}
+
+    @GetMapping("/canComment/{postId}/{userId}")
+    public ResponseEntity<Boolean> createComment(@PathVariable Long postId, @PathVariable Long userId) {
+        return ResponseEntity.ok(postService.canComment(postId, userId));
+    }
+ }

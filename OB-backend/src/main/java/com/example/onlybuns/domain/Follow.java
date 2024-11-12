@@ -1,5 +1,7 @@
 package com.example.onlybuns.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -10,12 +12,15 @@ public class Follow {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "follower_id", nullable = false)
+  @JoinColumn(name = "follower_id", nullable = false) //prati
   private Account follower;
 
   @ManyToOne
-  @JoinColumn(name = "followed_id", nullable = false)
+  @JoinColumn(name = "followed_id", nullable = false) //je zapracen
   private Account followed;
+
+  @Column(name="followed_date")
+  private LocalDateTime followDate;
 
   // Getters and Setters
   public Long getId() {
@@ -41,4 +46,12 @@ public class Follow {
   public void setFollowed(Account followed) {
       this.followed = followed;
   }
+  public LocalDateTime getFollowDate() {
+    return followDate;
+}
+
+public void setFollowDate(LocalDateTime followDate) {
+    this.followDate = followDate;
+}
+
 }

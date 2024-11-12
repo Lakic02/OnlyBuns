@@ -11,6 +11,8 @@ import ChatView from '@/views/ChatView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import UsersView from '@/views/UsersView.vue';
 import PostDetailsView from '@/views/PostDetailsView.vue';
+import CheckUserView from '@/views/CheckUserView.vue';
+
 import axios from 'axios';
 
 const router = createRouter({
@@ -96,6 +98,37 @@ const router = createRouter({
       path: '/PostDetails/:postId',
       name: 'PostDetails',
       component: PostDetailsView
+    },
+    {
+      path: '/CheckUser/:userId',
+      name: 'CheckUser',
+      component: CheckUserView,
+      meta: {
+        roles: ['admin', 'registered']
+      },
+      // beforeEnter: async (to, from, next) => {
+      //   console.log('USLOOO')
+      //   try{
+      //     const token = localStorage.getItem('token');
+      //     if (!token) {
+      //       return next({ name: 'Login' });
+      //     }
+
+      //     const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token })
+      //     const loggedInUserId = response.data.id;
+      //     const userIdFromRoute = to.params.userId;
+      
+      //     if (loggedInUserId === userIdFromRoute) {
+      //       console.log('ASBVQASVBAS')
+      //       return next(from.fullPath);
+      //     } else {
+      //       next();
+      //     }
+      //   } catch (error) {
+      //   console.error('Error decoding token:', error);
+      //   next({ name: 'Login' });
+      //   }
+      // }
     }
   ]
 })
@@ -108,11 +141,11 @@ router.beforeEach(async (to, from, next) => {
     try {
       const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token })
       console.log(response)
-      console.log('ISPIS U ROUTERU')
+      //console.log('ISPIS U ROUTERU')
 
       if (response.status == 200) {
         let { id, username, role } = response.data
-        console.log(id, username, role)
+        //console.log(id, username, role)
 
         if (to.meta.roles) {
           if (to.meta.roles.includes(role)) {

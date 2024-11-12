@@ -1,31 +1,32 @@
 <template>
-  <body>
-    <div class="register-container-login">
-      <div class="logInTitle">
-        <h1>Log in</h1>
-      </div>
-      <form class="form-login">
-        <div class="form-group-login">
-          <label for="username">Username</label>
-          <input type="text" id="username" v-model="username">
-        </div>
-
-        <div class="form-group-login">
-          <label for="password">Password</label>
-          <input type="password" id="password" v-model="password">
-        </div>
-
-        <div class="form-group-login" v-if="errorVisible">
-          <label class="error">All fields are required!</label>
-        </div>
-        <div class="form-group-login" v-if="errorLogIn">
-          <label class="error">Username or password is not correct.</label>
-        </div>
-        <button id="LogInButton" type="submit" @click="Submit">LogIn</button>
-      </form>
+  <div class="register-container-login">
+    <div class="logInTitle">
+      <h1>Log in</h1>
     </div>
-  </body>
+    <form class="form-login" @submit.prevent="Submit">
+      <div class="form-group-login">
+        <label for="username">Email</label>
+        <input type="text" id="username" v-model="username" class="login-input">
+      </div>
+
+      <div class="form-group-login">
+        <label for="password">Password</label>
+        <input type="password" id="password" v-model="password" class="login-input">
+      </div>
+
+      <div class="form-group-login" v-if="errorVisible">
+        <label class="error">All fields are required!</label>
+      </div>
+      
+      <div class="form-group-login" v-if="errorLogIn">
+        <label class="error">Email or password is not correct.</label>
+      </div>
+      
+      <button id="LogInButton" type="submit">LogIn</button>
+    </form>
+  </div>
 </template>
+
 
 <script>
   import axios from 'axios'
@@ -65,14 +66,31 @@
             this.$eventBus.emit('logInSuccess');
             this.$emit('LogInSuccess')
           }else{
+            console.log('ALO')
             this.errorVisible = false
             this.errorLogIn = true
             this.showError('Log-in failed')
+            alert('Login failed');
           }
         }).catch(err => {
-          if (err.data) {
-          this.showError('Log-in failed')
-          }
+          if (err.response) {
+      if (err.response.status === 401) {
+        // Ako je status 401 - Unauthorized
+       alert('Login failed: Unauthorized access');
+        this.errorVisible = true;
+        this.errorLogIn = true;
+      } else {
+        // Za sve ostale greške sa statusnim kodovima
+        this.showError(`Login failed: ${err.response.status} error`);
+        this.errorVisible = true;
+        this.errorLogIn = true;
+      }
+    } else {
+      // Ako je neka druga greška (npr. mrežna greška)
+      this.showError('Login failed: Network error');
+      this.errorVisible = true;
+      this.errorLogIn = true;
+    }
         })
       }
     }
@@ -81,54 +99,82 @@
 
 <style>
 .register-container-login {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 60px;
-  height: 60vh;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logInTitle {
+  color: var(--clr-black);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .form-login {
   display: flex;
   flex-direction: column;
-  width: 550px;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  gap: 15px;
 }
 
 .form-group-login {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 5px;
 }
 
+.form-group-login label {
+  font-weight: 500;
+  color: var(--clr-black);
+}
 
+.form-group-login input {
+  padding: 10px;
+  border: 1px solid var(--clr-primary);
+  border-radius: 3px;
+}
 
-#LogInButton{
+.form-group-login input:focus {
+  outline: none;
+  border-color: var(--clr-primary-dark);
+}
+
+.error {
+  color: var(--clr-secondary);
+  font-size: 14px;
+}
+
+#LogInButton {
   background-color: var(--clr-primary);
+  color: white;
   border: none;
   padding: 10px;
-  font-size: 1.2em;
+  border-radius: 3px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  transition: background-color 0.15s ease-in-out;
   width: 100%;
 }
 
-
-#LogInButton:hover {
-  background-color: var(--clr-primary);
+#LogInButton:hover:not(:disabled) {
+  background-color: var(--clr-primary-dark);
 }
 
-.error-login{
-  text-align: center;
-  color: red;
+@media (max-width: 768px) {
+  .register-container-login {
+    padding: 15px;
+    width: 100%;
+  }
+
+  .logInTitle {
+    font-size: 20px;
+  }
 }
-.logInTitle{
-  text-align: center;
-  padding-bottom: 30px;
-}
+
+
+
 </style>

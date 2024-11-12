@@ -3,12 +3,19 @@ package com.example.onlybuns.service;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.repository.AccountRepository;
 import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.PostRepository;
 
+import jakarta.transaction.Transactional;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,7 +28,14 @@ public class AccountService {
     private PostRepository postRepository;
     @Autowired
     private FollowRepository followRepository;
+    @Autowired
+    private NotificationService notificationService;
 
+    
+    public Account getAccountById(Long accountId) {
+        return accountRepository.findById(accountId).orElse(null);
+    }
+    
     public Page<Account> getAccounts(String firstName, String lastName, String email, String address, Integer minPosts, Integer maxPosts, int page, int size, String sortField, String sortDir) {
         PageRequest pageRequest = PageRequest.of(page, size);
         List<Account> resultList = new ArrayList<>(accountRepository.findAll());
@@ -110,4 +124,36 @@ public class AccountService {
         return followRepository.countByFollowedId(accountId);
     }
 
+    @Transactional
+    @Scheduled(cron = "0 0 0 L * ?", zone = "Europe/Belgrade") // Svaki poslednji dan u mesecu
+    public void deleteUnauthenticatedAccounts() {
+        LocalDate currentDate = LocalDate.now();
+        System.out.println("USLO U BRISANJE NALOGAAAAA");
+        
+        // Dohvati naloge sa statusom 'unauthenticated'
+        List<Account> unauthenticatedAccounts = accountRepository.findByRole(Account.Role.unauthenticated);
+        
+        for (Account account : unauthenticatedAccounts) {
+            // Proverava koliko dana je prošlo od registracije
+            //long daysSinceRegistration = ChronoUnit.DAYS.between(account.getCreatedAt(), currentDate);
+            
+            // Ako je prošlo više od 30 dana, briši nalog
+            //if (daysSinceRegistration > 30) {
+            //}
+            
+            accountRepository.delete(account);
+            System.out.println("Deleted unauthenticated account with email: " + account.getEmail());
+        }
+    }
+
+    public void updateLastLogin(Account account) {
+        account.setLastLogin(LocalDateTime.now());
+        accountRepository.save(account); 
+    }
+
+    
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void scheduleInactiveUserNotifications() {
+        notificationService.sendInactiveUserNotifications();
+    }
 }

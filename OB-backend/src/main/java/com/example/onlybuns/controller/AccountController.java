@@ -3,6 +3,7 @@ package com.example.onlybuns.controller;
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.service.AccountService;
 
+import jdk.jfr.Frequency;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class AccountController {
           @RequestParam(required = false) String address,
           @RequestParam(required = false) Integer minPosts,
           @RequestParam(required = false) Integer maxPosts,
+          @RequestParam(required = false) Boolean isActive,
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "999") int size,
           @RequestParam(defaultValue = "email") String sortField,
@@ -32,6 +34,16 @@ public class AccountController {
           //System.out.println("USLOOO");
     return accountService.getAccounts(firstName, lastName, email, address, minPosts, maxPosts, page, size, sortField, sortDir);
   }
+  @GetMapping("/getById/{accountId}")
+    public ResponseEntity<Account> getAccountById(@PathVariable Long accountId) {
+      Account account = accountService.getAccountById(accountId);
+      if (account != null) {
+        return new ResponseEntity<>(account, HttpStatus.OK);
+      } else {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Vraća 404 ako korisnik nije pronađen
+      }
+    }
+
 
   // Endpoint za brojanje objava korisnika
   @GetMapping("/countPosts/{accountId}")

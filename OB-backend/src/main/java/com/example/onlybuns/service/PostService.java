@@ -3,6 +3,7 @@ package com.example.onlybuns.service;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -18,6 +19,8 @@ import javax.imageio.ImageIO;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +31,7 @@ import com.example.onlybuns.domain.Like;
 import com.example.onlybuns.domain.Post;
 import com.example.onlybuns.repository.AccountRepository;
 import com.example.onlybuns.repository.CommentRepository;
+import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
@@ -48,6 +52,10 @@ public class PostService {
 
     @Autowired
     private CommentRepository commentRepository;
+    
+    @Autowired
+    private FollowRepository followRepository;
+
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
     
@@ -57,6 +65,15 @@ public class PostService {
     }
     public Optional<Post> findById(Long id) {
         return postRepository.findById(id);
+    }
+    
+    @Transactional
+    public List<Post> getFollowedUsersPosts(Long userId) {
+        // Dohvati sve korisnike koje trenutni korisnik prati
+        List<Long> followedUserIds = followRepository.findFollowedUserIdsByUserId(userId);
+        
+        // Dohvati sve postove od tih korisnika
+        return postRepository.findAllByAccountIdIn(followedUserIds);
     }
     
     // Brojanje lajkova za objavu
@@ -140,60 +157,70 @@ public class PostService {
 
             likeRepository.save(like);
 
-            Thread.sleep(10000);
+            Thread.sleep(500);
         } finally {
             lock.unlock();
             locks.remove(postId, lock);
         }
     }
     
-    // @Transactional
-    // public void removeLike(Long postId, Long userId) throws InterruptedException {
-    //     Lock lock = locks.get(postId);
+    @Transactional
+    public void removeLike(Long postId, Long userId) throws InterruptedException {
+        Lock lock = locks.get(postId);
     
-    //     if (lock == null) {
-    //         lock = new ReentrantLock();
-    //         locks.put(postId, lock);
-    //     }
+        if (lock == null) {
+            lock = new ReentrantLock();
+            locks.put(postId, lock);
+        }
     
-    //     lock.lock();
-    //     try {
-    //         // Proverava da li korisnik već lajkovao post
-    //         Like like = likeRepository.findByPostIdAndAccountId(postId, userId)
-    //             .orElseThrow(() -> new RuntimeException("User has not liked this post."));
+        lock.lock();
+        try {
+            // Proverava da li korisnik već lajkovao post
+            Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
     
-    //         // Uklanja lajk
-    //         likeRepository.delete(like);
+            // Uklanja lajk
+            if(like != null){
+                likeRepository.delete(like);
+            }
     
-    //         Thread.sleep(10000); // Simulacija pauze ako je potrebno
-    //     } finally {
-    //         lock.unlock();
-    //         locks.remove(postId, lock);
-    //     }
-    // }
+            Thread.sleep(500); // Simulacija pauze ako je potrebno
+        } finally {
+            lock.unlock();
+            locks.remove(postId, lock);
+        }
+    }
     
-    // @Transactional
-    // public boolean hasUserLikedPost(Long postId, Long userId) {
-    //     return likeRepository.existsByPostIdAndAccountId(postId, userId);
-    // }
+    @Transactional
+    public boolean hasUserLikedPost(Long postId, Long userId) {
+        return likeRepository.existsByPostIdAndAccountId(postId, userId);
+    }
     
-
-
 
     @Transactional
-    public Comment addComment(Long postId, Long userId, Comment comment) {
+    public Comment addComment(Long postId, Long userId, String commentTxt) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
         
         Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+
+        long commentCount = commentRepository.countByAccountIdAndCreationTimeAfter(userId, oneHourAgo);
+
+        if (commentCount >= 60) {
+            throw new RuntimeException("Comment limit reached. You can post up to 60 comments per hour.");
+        }
+        Comment comment = new Comment();
+
         comment.setPost(post);
         comment.setAccount(account);
+        comment.setText(commentTxt);
         comment.setCreationTime(LocalDateTime.now());
 
         return commentRepository.save(comment);
     }
+
     @Transactional
     public Post getPostById(Long id) {
        return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found with ID: " + id));
@@ -242,7 +269,7 @@ public class PostService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void compressOldImages() throws IOException {
     
         List<Post> posts = postRepository.findAll();
@@ -286,4 +313,16 @@ public class PostService {
 
         return "Longitude: " + post.getLongitude() + ", Latitude: " + post.getLatitude();
     }
+
+    public boolean canComment(Long postId, Long userId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Long accountId = post.getAccount().getId(); 
+
+        boolean isFollowing = followRepository.existsByFollowerIdAndFollowedId(userId, accountId);
+
+        return isFollowing;
+    }
+    
 }

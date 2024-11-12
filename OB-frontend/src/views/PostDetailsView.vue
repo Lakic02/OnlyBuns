@@ -11,7 +11,8 @@
             class="pd-profile-image"
           />
           <div class="pd-user-details">
-            <h3 class="pd-username">{{ post.account.userName }}</h3>
+            <h3 @click="loggedInUserId !== post.account.id ? navigateToUser(post.account.id) : null" 
+                style="cursor: pointer;" class="pd-username">{{ post.account.userName }}</h3>
             <p class="pd-post-time">{{ formatDate(post.creationTime) }}</p>
           </div>
           <!-- Added Post Actions -->
@@ -110,25 +111,43 @@
 
       <!-- Comments Section -->
       <div class="pd-comments-section">
-        <h4 class="pd-comments-title">Comments</h4>
-        <div v-if="comments.length" class="pd-comments-list">
-          <div v-for="comment in comments" :key="comment.id" class="pd-comment">
-            <img 
-              v-if="comment.account.profileImage" 
-              :src="comment.account.profileImage" 
-              alt="Commenter" 
-              class="pd-commenter-image"
-            />
-            <div class="pd-comment-content">
-              <p class="pd-commenter-name">{{ comment.account.userName }}</p>
-              <p class="pd-comment-text">{{ comment.text }}</p>
-              <p class="pd-comment-time">{{ formatDate(comment.creationTime) }}</p>
-            </div>
+      <h4 class="pd-comments-title">Comments</h4>
+
+      <div v-if="displayedComments.length" class="pd-comments-list">
+        <div v-for="comment in displayedComments" :key="comment.id" class="pd-comment">
+          <img 
+            v-if="comment.account.profileImage" 
+            :src="comment.account.profileImage" 
+            alt="Commenter" 
+            class="pd-commenter-image"
+          />
+          <div class="pd-comment-content">
+            <p class="pd-commenter-name">{{ comment.account.userName }}</p>
+            <p class="pd-comment-text">{{ comment.text }}</p>
+            <p class="pd-comment-time">{{ formatDate(comment.creationTime) }}</p>
           </div>
         </div>
-        <p v-else class="pd-no-comments">No comments yet</p>
       </div>
-    </div>
+
+      <p v-else class="pd-no-comments">No comments yet</p>
+
+      <!-- Show more button -->
+      <div v-if="displayedComments.length < comments.length" class="pd-show-more-comments">
+        <button @click="loadMoreComments" class="pd-load-more-button">Show more comments</button>
+      </div>
+
+      <!-- New Comment Form -->
+      <div class="pd-new-comment" v-if="canComment">
+        <textarea 
+          v-model="newCommentText" 
+          placeholder="Add a comment..." 
+          class="pd-new-comment-input"
+        ></textarea>
+        <button @click="addComment" class="pd-add-comment-button">Post Comment</button>
+          </div>
+            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+          </div>
+        </div>
 
     <!-- Loading State -->
     <div v-else class="pd-loading-state">
@@ -153,25 +172,37 @@ export default {
       editingPost: null,
       newImage: null,
       imagePreview: null,
-      isLiked: false
+      isLiked: false,
+      newCommentText: "",
+      errorMessage: "",
+      displayedComments: [],
+      canComment: false
     };
   },
   
   mounted() {
-    this.fetchPostDetails();
-    this.fetchPostLikes();
-    this.fetchComments();
-    this.loadUser();
-    this.checkIfLiked();
+    this.fetchPostDetails()
+      .then(() => this.fetchPostLikes())  // Nakon fetchPostDetails, poziva se fetchPostLikes
+      .then(() => this.fetchComments())   // Nakon fetchPostLikes, poziva se fetchComments
+      .then(() => this.loadUser())        // Nakon fetchComments, poziva se loadUser
+      .then(() => this.checkIfLiked())    // Na kraju, poziva se checkIfLiked
+      .then(() => this.canCommentOnPost())
+    .catch(error => {
+      console.error("An error occurred while fetching data: ", error);
+    });
   },
 
   methods: {
+    loadMoreComments() {
+      const nextComments = this.comments.slice(this.displayedComments.length, this.displayedComments.length + 5);
+      this.displayedComments = [...this.displayedComments, ...nextComments];
+    },
     async checkIfLiked() {
       if (!this.loggedInUserId) return;
       
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/likes/check/${this.$route.params.postId}/${this.loggedInUserId}`
+          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`
         );
         this.isLiked = response.data;
       } catch (error) {
@@ -187,14 +218,14 @@ export default {
       try {
         if (this.isLiked) {
           await axios.delete(
-            `http://localhost:8081/api/posts/likes/unlike/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`
           );
-          this.likes--;
+          this.fetchPostLikes()
         } else {
           await axios.post(
-            `http://localhost:8081/api/posts/likes/like/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`
           );
-          this.likes++;
+          this.fetchPostLikes()
         }
         this.isLiked = !this.isLiked;
       } catch (error) {
@@ -228,7 +259,9 @@ export default {
         console.error('Error fetching post details:', error);
       }
     },
-
+    navigateToUser(userId) {
+      this.$router.push({ name: 'CheckUser', params: { userId } });
+    },
     async fetchPostFile() {
       try {
         const response = await axios.get(
@@ -257,13 +290,54 @@ export default {
         console.error('Error fetching likes:', error);
       }
     },
+    async canCommentOnPost(){
+        const response = await axios.get(
+          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`)
+        if(response.data){
+          this.canComment=true;
+        }
+        else{
+          this.canComment=false;
+        }
+    },
+    async addComment() {
+      if (!this.newCommentText.trim()) {
+        return; 
+      }
+      this.errorMessage = ''
+      try {
+        const formData = new FormData();
+        formData.append("text", this.newCommentText);
 
+
+        const response = await axios.post(
+          `http://localhost:8081/api/posts/comment/${this.$route.params.postId}/${this.loggedInUserId}`,
+          formData);
+        if (response.status === 200) {
+          this.newCommentText = "";
+          this.fetchComments()
+        }
+
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+            this.errorMessage = "You can post up to 60 comments per hour.";
+            this.newCommentText = "";
+        } else {
+            this.errorMessage = "An error occurred while posting the comment.";
+        }
+        console.error('Error posting comment:', error);
+      }
+    },
     async fetchComments() {
       try {
         const response = await axios.get(
           `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`
         );
-        this.comments = response.data;
+        
+        this.comments = response.data.sort((a, b) => new Date(b.creationTime) - new Date(a.creationTime));
+
+        this.displayedComments = this.comments.slice(0, 5);
+
       } catch (error) {
         console.error('Error fetching comments:', error);
         this.comments = [];
@@ -666,5 +740,52 @@ export default {
 
 .pd-cancel-button:hover {
   background-color: #f3f4f6;
+}
+.pd-new-comment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pd-new-comment-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.pd-add-comment-button {
+  padding: 0.5rem 1rem;
+  background-color: #e56b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-add-comment-button:hover {
+  background-color: #d75555;
+}
+
+.error-message{
+  color: red;
+}
+.pd-show-more-comments {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.pd-load-more-button {
+  background-color: #e56b6b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-load-more-button:hover {
+  background-color: #d75555;
 }
 </style>

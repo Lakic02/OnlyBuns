@@ -50,6 +50,8 @@
           <img v-if="post.imageUrl" :src="post.imageUrl" alt="Post Image" class="post-image" />
         </div>
       </div>
+
+     
       
       <div class="post-footer">
         <span>{{ postLikes[post.id] || 0 }} Likes</span>

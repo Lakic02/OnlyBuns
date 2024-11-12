@@ -1,6 +1,8 @@
 package com.example.onlybuns.domain;
 
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -27,6 +29,22 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     public Role role;
+    // @Column(name = "is_active",nullable = false)
+    // public boolean isActive;
+
+    // public boolean isActive() {
+    //     return isActive;
+    // }
+
+    // public void setActive(boolean active) {
+    //     isActive = active;
+    // }
+
+    public Account(){}    
+    @Column(name = "follower_count")
+    private int followerCount = 0;
+    @Column(name = "last_login")
+    public LocalDateTime lastLogin;
 
 
     public long getId() {
@@ -92,11 +110,28 @@ public class Account {
     public void setRole(Role role) {
         this.role = role;
     }
+
+    public int getFollowerCount() {
+        return followerCount;
+    }
+
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+
     
     public enum Role {
         admin,
         registered,
         unauthenticated
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
 }
