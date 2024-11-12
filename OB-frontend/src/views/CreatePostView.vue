@@ -95,6 +95,7 @@ export default {
         );
         if (response.data) {
             this.postId = response.data.id;
+            this.$router.push({ name: 'Posts' });
         }
         this.fetchPosts();
     } catch (error) {
