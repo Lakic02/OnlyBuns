@@ -3,6 +3,7 @@ package com.example.onlybuns.controller;
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.service.AccountService;
 
+import jdk.jfr.Frequency;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class AccountController {
           @RequestParam(required = false) String address,
           @RequestParam(required = false) Integer minPosts,
           @RequestParam(required = false) Integer maxPosts,
+          @RequestParam(required = false) Boolean isActive,
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "999") int size,
           @RequestParam(defaultValue = "email") String sortField,

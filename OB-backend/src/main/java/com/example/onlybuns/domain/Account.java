@@ -29,7 +29,18 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     public Role role;
-    
+    @Column(name = "is_Active",nullable = false)
+    public boolean isActive;
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Account(){}    
     @Column(name = "follower_count")
     private int followerCount = 0;
     @Column(name = "last_login")
