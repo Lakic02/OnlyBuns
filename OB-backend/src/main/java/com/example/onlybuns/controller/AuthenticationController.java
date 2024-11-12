@@ -41,7 +41,7 @@ public class AuthenticationController {
         try {
             System.out.println("CAOOO");
             account.setRole(Account.Role.unauthenticated);
-            account.setActive(false);
+            //account.setActive(false);
             Account acc = authenticationService.registerAccount(account);
             JWTUser jwtUser = new JWTUser(acc.getId(), acc.getUserName(), acc.getRole().toString());
             String token = JWTDecoder.createToken(jwtUser, 604800000L);
@@ -70,12 +70,12 @@ public class AuthenticationController {
 
             if (token != null){
                 Account account = token.getAccount();
-                account.setActive(true);
+                //account.setActive(true);
                 account.setRole(Account.Role.registered);
 
                 authenticationService.registerAccount(account);
 
-                System.out.println("Status acc: " + account.isActive());
+                //System.out.println("Status acc: " + account.isActive());
 
                 return ResponseEntity.ok("Account successfully verified!");
             }else{

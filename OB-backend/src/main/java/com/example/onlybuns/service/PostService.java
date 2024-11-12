@@ -269,7 +269,7 @@ public class PostService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void compressOldImages() throws IOException {
     
         List<Post> posts = postRepository.findAll();
