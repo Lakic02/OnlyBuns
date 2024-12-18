@@ -35,6 +35,7 @@ import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
+import io.micrometer.core.annotation.Timed;
 import jakarta.transaction.Transactional;
 import net.coobird.thumbnailator.Thumbnails;
 
@@ -89,6 +90,7 @@ public class PostService {
 
 
     @Transactional
+    @Timed(value = "http.post.create.time", description = "Time taken to create a post")
     public Post createPost(String description, Double latitude, Double longitude, String file, Long accId) throws IOException {
     Account account = accountRepository.findById(accId)
             .orElseThrow(() -> new RuntimeException("Account not found"));
