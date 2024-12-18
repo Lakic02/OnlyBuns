@@ -10,10 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.onlybuns.domain.Comment;
@@ -29,16 +31,32 @@ public class PostController {
     @Autowired
     private PostService postService;
     
+    //@Autowired
+    //private RestTemplate restTemplate; !!! OSTAVITI ZA TESTIRANJE !!!
+    @Autowired
+    Environment environment;
     
     @GetMapping("/getAll")
     public ResponseEntity<List<Post>> getPosts() {
+        //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
+        //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
+        //System.out.println(response); !!! OSTAVITI ZA TESTIRANJE !!!
         return ResponseEntity.ok(postService.getPosts());
     }
     @GetMapping("/findById/{id}")
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
+        //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
+        //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
+        //System.out.println(response); !!! OSTAVITI ZA TESTIRANJE !!!
         Optional<Post> post = postService.findById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+    // Dodaj internu metodu za identifikaciju instance
+    @GetMapping("/internalGetAll")
+    public ResponseEntity<String> internalGetAll() {
+        return ResponseEntity.ok("Handled by port: " + environment.getProperty("local.server.port"));
+    }
+
     @GetMapping("/followed/{userId}")
     public ResponseEntity<List<Post>> getFollowedUsersPosts(@PathVariable Long userId) {
         List<Post> posts = postService.getFollowedUsersPosts(userId);
