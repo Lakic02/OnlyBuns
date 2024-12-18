@@ -24,6 +24,16 @@
           <router-link to="/Profile">Profile</router-link>
         </div>
       </div>
+      <!-- Padajući meni za admine -->
+      <div class="dropdown" v-if="isAdminLoggedIn">
+        <button class="dropbtn">Admin</button>
+        <div class="dropdown-content">
+          <router-link to="/Posts">All Users' Posts</router-link>
+          <router-link to="/Trends">Trends</router-link>
+          <router-link to="/Analytics">App Analytics</router-link>
+          <router-link to="/Users">All Users' Profiles</router-link>
+        </div>
+      </div>
     </div>
     <div class="nav-links nav-secondary" v-if="IsLoggedIn">
       <div class="header-user-info">

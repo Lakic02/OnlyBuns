@@ -12,6 +12,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:5173") // Dozvolite vaš frontend
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Dozvolite metode
                 .allowCredentials(true); // Ako je potrebno
+
+        registry.addMapping("/ws/**")
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowCredentials(true);
                 
     }
     @Override

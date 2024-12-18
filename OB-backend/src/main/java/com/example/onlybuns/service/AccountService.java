@@ -124,6 +124,13 @@ public class AccountService {
         return followRepository.countByFollowedId(accountId);
     }
 
+    public Account findByEmail(String email){
+        return accountRepository.findByEmail(email);
+    }
+    public Optional<Account> findById(Long id){
+        return accountRepository.findById(id);
+    }
+
     @Transactional
     @Scheduled(cron = "0 0 0 L * ?", zone = "Europe/Belgrade") // Svaki poslednji dan u mesecu
     public void deleteUnauthenticatedAccounts() {
