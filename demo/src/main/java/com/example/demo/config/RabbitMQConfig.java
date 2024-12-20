@@ -1,4 +1,4 @@
-package main.java.com.example.demo.config;
+package com.example.demo.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Autowired
-    private FanoutExchange fanoutExchange;
+    @Bean
+    public FanoutExchange fanoutExchange() {
+        return new FanoutExchange("postExchange");
+    }
 
     @Bean
     public Queue agencyQueue() {
