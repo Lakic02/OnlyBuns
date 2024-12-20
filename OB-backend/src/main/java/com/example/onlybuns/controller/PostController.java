@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.onlybuns.domain.Comment;
 import com.example.onlybuns.domain.Post;
+import com.example.onlybuns.service.PostPublisher;
 import com.example.onlybuns.service.PostService;
 
 import io.micrometer.core.annotation.Timed;
@@ -37,6 +38,17 @@ public class PostController {
     //private RestTemplate restTemplate; !!! OSTAVITI ZA TESTIRANJE !!!
     @Autowired
     Environment environment;
+
+    @Autowired
+    private PostPublisher postPublisher;
+
+    @PostMapping("/publish")
+    public String publishMessage(@RequestBody Post post) {
+        String message = String.format("Description: %s, Time: %s, User: %s",
+                post.getDescription(), post.getCreationTime().toString(), post.getAccount().getUserName());
+        postPublisher.sendMessage(message);
+        return "Message sent: " + message;
+    }
     
     @GetMapping("/getAll")
     public ResponseEntity<List<Post>> getPosts() {

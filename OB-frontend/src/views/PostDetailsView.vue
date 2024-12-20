@@ -20,6 +20,9 @@
             <button @click="startEditing(post)" class="pd-action-button">✏️</button>
             <button @click="deletePost(post.id)" class="pd-action-button">🗑️</button>
           </div>
+          <div class="pd-post-actions" v-if="loggedInUserRole === 'admin'">
+            <button @click="publishPost(post.id)" class="pd-action-button">Publish post</button>
+          </div>
         </div>
       </div>
 
@@ -154,6 +157,12 @@
       <div class="pd-loading-spinner"></div>
       <p>Loading post details...</p>
     </div>
+
+    <div v-if="isPopupVisible" class="popup-overlay">
+      <div class="popup-content">
+        <p>{{ popupMessage }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -176,7 +185,10 @@ export default {
       newCommentText: "",
       errorMessage: "",
       displayedComments: [],
-      canComment: false
+      canComment: false,
+      loggedInUserRole: "",
+      isPopupVisible: false, 
+      popupMessage: "",
     };
   },
   
@@ -193,6 +205,33 @@ export default {
   },
 
   methods: {
+    async publishPost(){
+      if (!this.loggedInUserId) return;
+
+      try {
+        await axios.post(
+            `http://localhost:8081/api/posts/publish`, this.post
+          );
+
+        this.popupMessage = "Post has been successfully published!";
+        this.isPopupVisible = true;  // Prikazuje popup
+
+        setTimeout(() => {
+          this.isPopupVisible = false;
+        }, 3000);
+
+
+      } catch (error) {
+        console.error('Error publish:', error);
+        this.popupMessage = "There was an error publishing the post.";
+        this.isPopupVisible = true;  // Prikazuje popup
+
+        setTimeout(() => {
+          this.isPopupVisible = false;
+        }, 3000);
+        }
+    },
+
     loadMoreComments() {
       const nextComments = this.comments.slice(this.displayedComments.length, this.displayedComments.length + 5);
       this.displayedComments = [...this.displayedComments, ...nextComments];
@@ -240,6 +279,7 @@ export default {
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
+            this.loggedInUserRole = role;
           }
         } catch (error) {
           console.error('Failed to decode token:', error);
@@ -801,5 +841,39 @@ export default {
 
 .pd-load-more-button:hover {
   background-color: #d75555;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.popup-content {
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideIn {
+  0% { transform: translateY(-50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 </style>
