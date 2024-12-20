@@ -12,6 +12,8 @@ import ProfileView from '@/views/ProfileView.vue';
 import UsersView from '@/views/UsersView.vue';
 import PostDetailsView from '@/views/PostDetailsView.vue';
 import CheckUserView from '@/views/CheckUserView.vue';
+import AnalyticsView from '@/views/AnalyticsView.vue';
+import ChatRoomView from '@/views/ChatRoomView.vue';
 
 import axios from 'axios';
 
@@ -79,6 +81,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/ChatRoom/:roomId',
+      name: 'ChatRoom',
+      component: ChatRoomView,
+      meta: {
+        roles: ['admin', 'registered']
+      }
+    },
+    {
       path: '/Profile',
       name: 'Profile',
       component: ProfileView,
@@ -98,6 +108,14 @@ const router = createRouter({
       path: '/PostDetails/:postId',
       name: 'PostDetails',
       component: PostDetailsView
+    },
+    {
+      path: '/Analytics',
+      name: 'Analytics',
+      component: AnalyticsView,
+      meta: {
+        roles: ['admin']
+      }
     },
     {
       path: '/CheckUser/:userId',

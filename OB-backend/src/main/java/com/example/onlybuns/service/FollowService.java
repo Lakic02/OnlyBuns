@@ -45,85 +45,152 @@ public class FollowService {
 
   @Transactional
   public void followUser(Long followerId, Long followedId) throws InterruptedException {
-    Lock lock = locks.get(followedId);
+    // Lock lock = locks.get(followedId);
 
-    if (lock == null) {
-        lock = new ReentrantLock();
-        locks.put(followedId, lock);
-    }
+    // if (lock == null) {
+    //     lock = new ReentrantLock();
+    //     locks.put(followedId, lock);
+    // }
     
-    lock.lock();
-    try {
-        if (followerId.equals(followedId)) {
-            throw new IllegalArgumentException("Korisnik ne može pratiti sam sebe");
-        }
+    // lock.lock();
+    // try {
+    //     if (followerId.equals(followedId)) {
+    //         throw new IllegalArgumentException("Korisnik ne može pratiti sam sebe");
+    //     }
   
-        if (followRepository.existsByFollowerIdAndFollowedId(followerId, followedId)) {
-            throw new IllegalArgumentException("Već prati ovog korisnika");
-        }
+    //     if (followRepository.existsByFollowerIdAndFollowedId(followerId, followedId)) {
+    //         throw new IllegalArgumentException("Već prati ovog korisnika");
+    //     }
   
-        // Provera ograničenja od 50 praćenja po minuti
-        followLimitMap.putIfAbsent(followerId, 0);
-        followTimeMap.putIfAbsent(followerId, LocalDateTime.now());
+    //     // Provera ograničenja od 50 praćenja po minuti
+    //     followLimitMap.putIfAbsent(followerId, 0);
+    //     followTimeMap.putIfAbsent(followerId, LocalDateTime.now());
   
-        LocalDateTime lastFollowTime = followTimeMap.get(followerId);
-        int followCount = followLimitMap.get(followerId);
+    //     LocalDateTime lastFollowTime = followTimeMap.get(followerId);
+    //     int followCount = followLimitMap.get(followerId);
   
-        if (lastFollowTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
-            // Resetovanje broja praćenja posle jednog minuta
-            followTimeMap.put(followerId, LocalDateTime.now());
-            followLimitMap.put(followerId, 1);
-        } else if (followCount >= 50) {
-            throw new IllegalArgumentException("Prekoračen limit od 50 praćenja po minuti");
-        } else {
-            followLimitMap.put(followerId, followCount + 1);
-        }
+    //     if (lastFollowTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
+    //         // Resetovanje broja praćenja posle jednog minuta
+    //         followTimeMap.put(followerId, LocalDateTime.now());
+    //         followLimitMap.put(followerId, 1);
+    //     } else if (followCount >= 50) {
+    //         throw new IllegalArgumentException("Prekoračen limit od 50 praćenja po minuti");
+    //     } else {
+    //         followLimitMap.put(followerId, followCount + 1);
+    //     }
   
-        Account follower = accountRepository.findById(followerId).orElseThrow();
-        Account followed = accountRepository.findById(followedId).orElseThrow();
+    //     Account follower = accountRepository.findById(followerId).orElseThrow();
+    //     Account followed = accountRepository.findById(followedId).orElseThrow();
         
-        Follow follow = new Follow();
-        follow.setFollower(follower);
-        follow.setFollowed(followed);
-        follow.setFollowDate(LocalDateTime.now());
+    //     Follow follow = new Follow();
+    //     follow.setFollower(follower);
+    //     follow.setFollowed(followed);
+    //     follow.setFollowDate(LocalDateTime.now());
   
-        followRepository.save(follow);
+    //     followRepository.save(follow);
   
-        // Ažuriranje broja pratilaca (Transakcija za konkurentnost)
-        followed.setFollowerCount(followed.getFollowerCount() + 1);
-        accountRepository.save(followed);
+    //     // Ažuriranje broja pratilaca (Transakcija za konkurentnost)
+    //     followed.setFollowerCount(followed.getFollowerCount() + 1);
+    //     accountRepository.save(followed);
         
-        Thread.sleep(500);
-    }finally{
-        lock.unlock();
-        locks.remove(followedId, lock);
+    //     Thread.sleep(500);
+    // }finally{
+    //     lock.unlock();
+    //     locks.remove(followedId, lock);
+    // }
+    if (followerId.equals(followedId)) {
+        throw new IllegalArgumentException("Korisnik ne može pratiti sam sebe");
     }
+
+    // Provera ograničenja od 50 praćenja po minuti
+    followLimitMap.putIfAbsent(followerId, 0);
+    followTimeMap.putIfAbsent(followerId, LocalDateTime.now());
+
+    LocalDateTime lastFollowTime = followTimeMap.get(followerId);
+    int followCount = followLimitMap.get(followerId);
+
+    if (lastFollowTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
+        // Resetovanje broja praćenja posle jednog minuta
+        followTimeMap.put(followerId, LocalDateTime.now());
+        followLimitMap.put(followerId, 1);
+    } else if (followCount >= 50) {
+        throw new IllegalArgumentException("Prekoračen limit od 50 praćenja po minuti");
+    } else {
+        followLimitMap.put(followerId, followCount + 1);
+    }
+
+    // Zaključavanje reda za korisnika koga prati
+    Account followed = accountRepository.findByIdWithLock(followedId)
+        .orElseThrow(() -> new RuntimeException("Korisnik za praćenje nije pronađen"));
+
+    // Provera da li korisnik već prati ovog korisnika
+    if (followRepository.existsByFollowerIdAndFollowedId(followerId, followedId)) {
+        throw new IllegalArgumentException("Već prati ovog korisnika");
+    }
+
+    // Pronalaženje korisnika koji prati
+    Account follower = accountRepository.findById(followerId)
+        .orElseThrow(() -> new RuntimeException("Korisnik koji prati nije pronađen"));
+    
+    // Kreiranje nove veze praćenja
+    Follow follow = new Follow();
+    follow.setFollower(follower);
+    follow.setFollowed(followed);
+    follow.setFollowDate(LocalDateTime.now());
+
+    // Čuvanje veze praćenja i ažuriranje broja pratilaca
+    followRepository.save(follow);
+    followed.setFollowerCount(followed.getFollowerCount() + 1);
+    accountRepository.save(followed);
+
+    // Opciona simulacija konkurentnog pristupa
+    Thread.sleep(200);
+    //Thread.sleep(10000);
   }
 
   @Transactional
   public void unfollowUser(Long followerId, Long followedId) throws InterruptedException {
-    Lock lock = locks.get(followedId);
+    // Lock lock = locks.get(followedId);
 
-    if (lock == null) {
-        lock = new ReentrantLock();
-        locks.put(followedId, lock);
-    }
+    // if (lock == null) {
+    //     lock = new ReentrantLock();
+    //     locks.put(followedId, lock);
+    // }
 
-    lock.lock();
-    try {
-        Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
-              .orElseThrow(() -> new IllegalArgumentException("Following Not Found"));
+    // lock.lock();
+    // try {
+    //     Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
+    //           .orElseThrow(() -> new IllegalArgumentException("Following Not Found"));
 
-        followRepository.delete(follow);
+    //     followRepository.delete(follow);
 
-        Account followed = accountRepository.findById(followedId).orElseThrow();
-        followed.setFollowerCount(followed.getFollowerCount() - 1);
-        accountRepository.save(followed);
+    //     Account followed = accountRepository.findById(followedId).orElseThrow();
+    //     followed.setFollowerCount(followed.getFollowerCount() - 1);
+    //     accountRepository.save(followed);
         
-        Thread.sleep(500); 
-    } finally {
-        lock.unlock();
-        locks.remove(followedId, lock);
-    }
+    //     Thread.sleep(500); 
+    // } finally {
+    //     lock.unlock();
+    //     locks.remove(followedId, lock);
+    // }
+
+    // Zaključavanje reda za korisnika koga prati
+    Account followed = accountRepository.findByIdWithLock(followedId)
+        .orElseThrow(() -> new RuntimeException("Korisnik za praćenje nije pronađen"));
+
+    // Pronalaženje veze praćenja
+    Follow follow = followRepository.findByFollowerIdAndFollowedId(followerId, followedId)
+        .orElseThrow(() -> new IllegalArgumentException("Praćenje nije pronađeno"));
+
+    // Brisanje veze praćenja
+    followRepository.delete(follow);
+
+    // Ažuriranje broja pratilaca
+    followed.setFollowerCount(followed.getFollowerCount() - 1);
+    accountRepository.save(followed);
+
+    // Opciona simulacija konkurentnog pristupa
+    Thread.sleep(200);
+    //Thread.sleep(10000);
   }
 }

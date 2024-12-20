@@ -14,6 +14,13 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     // Metoda za preuzimanje svih komentara za određenu objavu
     List<Comment> findByPost(Post post);
 
+    @Query("SELECT COUNT(DISTINCT c.account.id) FROM Comment c")
+    long countUsersWithComments();
+
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.account.id = :accId AND c.creationTime > :oneHourAgo")
-    long countByAccountIdAndCreationTimeAfter(@Param("accId") Long accId, @Param("oneHourAgo") LocalDateTime oneHourAgo);
+    long countByAccountIdAndCreationTimeAfter(@Param("accId") Long accId, @Param("oneHourAgo") LocalDateTime oneHourAgo);    
+    
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.creationTime BETWEEN :startDate AND :endDate")
+    long countCommentsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
 }

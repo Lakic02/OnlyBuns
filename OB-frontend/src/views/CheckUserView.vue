@@ -78,7 +78,7 @@ export default {
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
-            console.log(this.loggedInUserId)
+            //console.log(this.loggedInUserId)
           }
         } catch (error) {
           console.error('Failed to decode token:', error);
