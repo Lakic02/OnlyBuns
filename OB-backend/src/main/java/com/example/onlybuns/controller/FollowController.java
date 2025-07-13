@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.onlybuns.domain.Account;
@@ -13,6 +14,7 @@ import com.example.onlybuns.service.FollowService;
 
 @RestController
 @RequestMapping("/api/follow")
+@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
 public class FollowController {
   @Autowired
   private FollowService followService;

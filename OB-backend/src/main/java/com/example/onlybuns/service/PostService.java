@@ -140,33 +140,6 @@ public class PostService {
 
     @Transactional
     public void addLike(Long postId, Long userId) throws InterruptedException {
-        // Lock lock = locks.get(postId);
-
-        // if (lock == null) {
-        //     lock = new ReentrantLock();
-        //     locks.put(postId, lock);
-        // }
-
-        // lock.lock();
-        // try {
-        //     boolean exists = likeRepository.existsByPostIdAndAccountId(postId, userId);
-        //     if (exists) {
-        //         throw new RuntimeException("User has already liked this post.");
-        //     }
-        //     Like like = new Like();
-        //     like.setPost(postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId)));
-        //     like.setAccount(accountRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with ID: " + userId)));
-        //     like.setCreationTime(LocalDateTime.now());
-
-        //     likeRepository.save(like);
-
-        //     Thread.sleep(500);
-        // } finally {
-        //     lock.unlock();
-        //     locks.remove(postId, lock);
-        // }
-
-        // Zaključavanje reda za post
         Post post = postRepository.findByIdWithLock(postId)
             .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
 
@@ -174,7 +147,6 @@ public class PostService {
         if (exists) {
             throw new RuntimeException("User has already liked this post.");
         }
-
         Account account = accountRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
@@ -184,45 +156,20 @@ public class PostService {
         like.setCreationTime(LocalDateTime.now());
 
         likeRepository.save(like);
-        Thread.sleep(200);
+        Thread.sleep(5000);
         //Thread.sleep(20000);
     }
-    
     @Transactional
     public void removeLike(Long postId, Long userId) throws InterruptedException {
-        // Lock lock = locks.get(postId);
-    
-        // if (lock == null) {
-        //     lock = new ReentrantLock();
-        //     locks.put(postId, lock);
-        // }
-    
-        // lock.lock();
-        // try {
-        //     // Proverava da li korisnik već lajkovao post
-        //     Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
-    
-        //     // Uklanja lajk
-        //     if(like != null){
-        //         likeRepository.delete(like);
-        //     }
-    
-        //     Thread.sleep(500); // Simulacija pauze ako je potrebno
-        // } finally {
-        //     lock.unlock();
-        //     locks.remove(postId, lock);
-        // }
-        // Zaključavanje reda za post
-        Post post = postRepository.findByIdWithLock(postId)
-            .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
-
         Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
         if (like == null) {
             throw new RuntimeException("Like not found for post ID: " + postId + " and user ID: " + userId);
         }
+        // Like like = likeRepository.findByPostIdAndAccountIdWithLock(postId, userId)
+        //     .orElseThrow(() -> new RuntimeException("Like not found for post ID: " + postId + " and user ID: " + userId));
 
         likeRepository.delete(like);
-        Thread.sleep(10000);
+        Thread.sleep(5000);
     }
     
     @Transactional

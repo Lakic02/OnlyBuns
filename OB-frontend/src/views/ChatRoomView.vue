@@ -74,7 +74,8 @@ export default {
       messages: [],
       newMessage: '',
       loggedInUserId: null,
-      isAdmin: false
+      isAdmin: false,
+      kicked: false
     };
   },
   mounted() {
@@ -94,19 +95,37 @@ export default {
     });
     // Povezivanje sa WebSocket-om
     this.stompClient.activate();
+    this.membershipInterval = setInterval(this.checkMembership, 3000); // proverava na 3 sekunde
   },
   beforeDestroy() {
     // Zatvaranje WebSocket konekcije kada komponenta bude uništena
     if (this.stompClient) {
       this.stompClient.deactivate();
     }
+    if (this.membershipInterval) {
+      clearInterval(this.membershipInterval);
+    }
   },
   methods: {
+    async checkMembership() {
+      await this.fetchChatRoomData();
+      const stillMember = this.chatRoomMemberships.some(u => u.id === this.loggedInUserId);
+      if (!stillMember && !this.isAdmin && !this.kicked) {
+        this.kicked = true;
+        clearInterval(this.membershipInterval);
+        alert("You have been removed from this chat room.");
+        this.$router.push({ name: 'Chat' });
+      }
+    },
     async loadLoggedInUser() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
@@ -160,7 +179,11 @@ export default {
     },
     async fetchChatRoomData() {
       try {
-        const response = await axios.get(`http://localhost:8081/api/chat/getChatRoom/${this.$route.params.roomId}`);
+        const response = await axios.get(`http://localhost:8081/api/chat/getChatRoom/${this.$route.params.roomId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.chatRoom = response.data;
         console.log(this.chatRoom)
         if(this.loggedInUserId == this.chatRoom.admin.id)
@@ -168,9 +191,15 @@ export default {
         else
           this.isAdmin = false
 
-        const membershipsResponse = await axios.get(`http://localhost:8081/api/chat/getUsersInChatRoom/${this.$route.params.roomId}`);
+        const membershipsResponse = await axios.get(`http://localhost:8081/api/chat/getUsersInChatRoom/${this.$route.params.roomId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         console.log(membershipsResponse.data);
-        this.chatRoomMemberships = membershipsResponse.data;
+        this.chatRoomMemberships = membershipsResponse.data.sort((a, b) => 
+          a.userName.localeCompare(b.userName)
+        );
       } catch (error) {
         console.error('Failed to fetch chat room data:', error);
       }
@@ -184,7 +213,11 @@ export default {
           //this.scrollToBottom();
         //});
         const response = await axios.get(
-          `http://localhost:8081/api/chat/getMessagesForChatRoom/${this.$route.params.roomId}/${this.loggedInUserId}`
+          `http://localhost:8081/api/chat/getMessagesForChatRoom/${this.$route.params.roomId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         
         // Spajanje svih poruka u jednu promenljivu

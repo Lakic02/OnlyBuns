@@ -16,7 +16,7 @@
     </div>
 
     <div>
-      <h2>Sales Chart</h2>
+      <h2>Users Activity Analytics 2</h2>
       <canvas id="salesChart"></canvas>
     </div>
   </div>
@@ -47,12 +47,20 @@ export default {
   methods: {
     async fetchAnalytics() {
       try {
-        const postResponse = await axios.get('http://localhost:8081/api/analytics/posts');
+        const postResponse = await axios.get('http://localhost:8081/api/analytics/posts', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.weeklyPosts = postResponse.data.weeklyPosts;
         this.monthlyPosts = postResponse.data.monthlyPosts;
         this.yearlyPosts = postResponse.data.yearlyPosts;
 
-        const commentResponse = await axios.get('http://localhost:8081/api/analytics/comments');
+        const commentResponse = await axios.get('http://localhost:8081/api/analytics/comments', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.weeklyComments = commentResponse.data.weeklyComments;
         this.monthlyComments = commentResponse.data.monthlyComments;
         this.yearlyComments = commentResponse.data.yearlyComments;
@@ -63,7 +71,11 @@ export default {
 
     async fetchData() {
       try {
-        const response = await axios.get('http://localhost:8081/api/analytics/user-activity');
+        const response = await axios.get('http://localhost:8081/api/analytics/user-activity', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         const data = response.data;
         this.renderActivityChart(data);
         this.renderSalesChart(data);  // Render sales chart with the same data

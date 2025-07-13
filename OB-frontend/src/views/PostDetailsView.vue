@@ -210,7 +210,11 @@ export default {
 
       try {
         await axios.post(
-            `http://localhost:8081/api/posts/publish`, this.post
+            `http://localhost:8081/api/posts/publish`, this.post, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
           );
 
         this.popupMessage = "Post has been successfully published!";
@@ -241,7 +245,11 @@ export default {
       
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`
+          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.isLiked = response.data;
       } catch (error) {
@@ -257,12 +265,20 @@ export default {
       try {
         if (this.isLiked) {
           await axios.delete(
-            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
           );
           this.fetchPostLikes()
         } else {
           await axios.post(
-            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`, {}, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
           );
           this.fetchPostLikes()
         }
@@ -275,7 +291,11 @@ export default {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
@@ -291,7 +311,11 @@ export default {
     async fetchPostDetails() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/findById/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/findById/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.post = response.data;
         await this.fetchPostFile();
@@ -300,12 +324,18 @@ export default {
       }
     },
     navigateToUser(userId) {
+    console.log('userId')
+    console.log(userId)
       this.$router.push({ name: 'CheckUser', params: { userId } });
     },
     async fetchPostFile() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/getFile/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/getFile/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         
         let imagePath = response.data.imagePath;
@@ -323,7 +353,11 @@ export default {
     async fetchPostLikes() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/likes/count/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/likes/count/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.likes = response.data;
       } catch (error) {
@@ -332,7 +366,11 @@ export default {
     },
     async canCommentOnPost(){
         const response = await axios.get(
-          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`)
+          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          })
         if(response.data){
           this.canComment=true;
         }
@@ -352,7 +390,11 @@ export default {
 
         const response = await axios.post(
           `http://localhost:8081/api/posts/comment/${this.$route.params.postId}/${this.loggedInUserId}`,
-          formData);
+          formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         if (response.status === 200) {
           this.newCommentText = "";
           this.fetchComments()
@@ -385,7 +427,11 @@ export default {
     async fetchComments() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         
         this.comments = response.data.sort((a, b) => new Date(b.creationTime) - new Date(a.creationTime));
@@ -432,7 +478,8 @@ export default {
           formData,
           {
             headers: {
-              'Content-Type': 'multipart/form-data'
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }
         );
@@ -448,7 +495,11 @@ export default {
 
     async deletePost(postId) {
       try {
-        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`);
+        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         if (response.data) {
           // Navigate back to posts list after deletion
           this.$router.push({ name: 'Posts' });

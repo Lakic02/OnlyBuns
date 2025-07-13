@@ -56,7 +56,11 @@
           return
         }
         
-        axios.get("http://localhost:8081/api/authentication/logIn/"+this.username+"/"+this.password).then(response => {
+        axios.get("http://localhost:8081/api/authentication/logIn/"+this.username+"/"+this.password, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }).then(response => {
           if(response.data){
             this.errorVisible = false
             this.errorLogIn = false

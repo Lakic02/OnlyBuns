@@ -54,7 +54,11 @@ export default {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
@@ -81,7 +85,11 @@ export default {
     // Metoda za preuzimanje chatova iz baze
     async fetchChats() {
       try {
-        const response = await axios.get(`http://localhost:8081/api/chat/getChatRooms/${this.loggedInUserId}`);
+        const response = await axios.get(`http://localhost:8081/api/chat/getChatRooms/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         this.chats = response.data;
       } catch (error) {
         console.error("There was an error fetching chats:", error);
@@ -91,7 +99,11 @@ export default {
     async createNewChat() {
       // Ovde bi trebalo otvoriti formu za kreiranje novog chata, ili samo pozvati API da bi se chat kreirao
       try {
-        const response = await axios.post(`http://localhost:8081/api/chat/createRoom/${this.chatName}/${this.loggedInUserId}`)
+        const response = await axios.post(`http://localhost:8081/api/chat/createRoom/${this.chatName}/${this.loggedInUserId}`, {}, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          })
         this.navigateToChatDetails(response.data.id)
       } catch (error) {
         console.error('Error creating chat:', error);

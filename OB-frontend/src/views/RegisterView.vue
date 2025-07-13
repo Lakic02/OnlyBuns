@@ -104,7 +104,11 @@
   
         if (!hasErrors.value) {
           try {
-            const response = await axios.post('http://localhost:8081/api/authentication/register', payload);
+            const response = await axios.post('http://localhost:8081/api/authentication/register', payload, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
             
             // Uspješan odgovor sa servera
             if (response.status === 200) {

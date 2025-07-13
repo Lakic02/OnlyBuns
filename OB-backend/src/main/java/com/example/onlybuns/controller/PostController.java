@@ -29,7 +29,7 @@ import io.micrometer.core.annotation.Timed;
 
 @RestController
 @RequestMapping("/api/posts")
-@PreAuthorize("hasAuthority('registered')")
+//@PreAuthorize("hasAuthority('registered')")
 public class PostController {
     @Autowired
     private PostService postService;
@@ -42,7 +42,8 @@ public class PostController {
     @Autowired
     private PostPublisher postPublisher;
 
-    @PostMapping("/publish")
+    @PostMapping("/publish") //ADMIN USERS
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public String publishMessage(@RequestBody Post post) {
         String message = String.format("Description: %s, Time: %s, User: %s",
                 post.getDescription(), post.getCreationTime().toString(), post.getAccount().getUserName());
@@ -50,14 +51,14 @@ public class PostController {
         return "Message sent: " + message;
     }
     
-    @GetMapping("/getAll")
+    @GetMapping("/getAll") //ALL USERS
     public ResponseEntity<List<Post>> getPosts() {
         //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
         //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
         //System.out.println(response); !!! OSTAVITI ZA TESTIRANJE !!!
         return ResponseEntity.ok(postService.getPosts());
     }
-    @GetMapping("/findById/{id}")
+    @GetMapping("/findById/{id}") //ALL USERS
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
         //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
         //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
@@ -71,25 +72,27 @@ public class PostController {
         return ResponseEntity.ok("Handled by port: " + environment.getProperty("local.server.port"));
     }
 
-    @GetMapping("/followed/{userId}")
+    @GetMapping("/followed/{userId}") //REGISTERED AND ADMIN USERS
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     public ResponseEntity<List<Post>> getFollowedUsersPosts(@PathVariable Long userId) {
         List<Post> posts = postService.getFollowedUsersPosts(userId);
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/likes/count/{postId}")
+    @GetMapping("/likes/count/{postId}") //ALL USERS
     public ResponseEntity<Long> getLikesCount(@PathVariable Long postId) {
         Post post = postService.getPostById(postId);
         return ResponseEntity.ok(postService.countLikesForPost(post));
     }
 
-    @GetMapping("/comments/{postId}")
+    @GetMapping("/comments/{postId}") //ALL USERS
     public ResponseEntity<List<Comment>> getComments(@PathVariable Long postId) {
         Post post = postService.getPostById(postId);
         return ResponseEntity.ok(postService.getCommentsForPost(post));
     }
 
-    @PutMapping("/update/{postId}")
+    @PutMapping("/update/{postId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<Post> editPost(
         @PathVariable Long postId,
         @RequestParam(value = "description", required = false) String description,
@@ -100,7 +103,8 @@ public class PostController {
     }
     
     //@Timed(value = "post.creation.time", description = "Time taken to create a post")
-    @PostMapping("/create/{accId}")
+    @PostMapping("/create/{accId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<Post> createPost(
         @RequestParam("description") String description,
         @RequestParam("latitude") Double latitude,
@@ -123,30 +127,34 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-    @DeleteMapping("/delete/{postId}")
+    @DeleteMapping("/delete/{postId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<Post> deletePost(@PathVariable Long postId) {
         Post deletedPost = postService.deletePost(postId);
         return ResponseEntity.ok(deletedPost);
     }
 
-    @PostMapping("/like/{postId}/{userId}")
+    @PostMapping("/like/{postId}/{userId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<Void> likePost(@PathVariable Long postId, @PathVariable Long userId) throws InterruptedException {
         postService.addLike(postId, userId);
         return ResponseEntity.ok().build();
     }
-    @DeleteMapping("/dislike/{postId}/{userId}")
+    @DeleteMapping("/dislike/{postId}/{userId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<Void> dislikePost(@PathVariable Long postId, @PathVariable Long userId) throws InterruptedException {
         postService.removeLike(postId, userId);
         return ResponseEntity.ok().build();
     }
-    @GetMapping("/hasLiked/{postId}/{userId}")
+    @GetMapping("/hasLiked/{postId}/{userId}") //ALL USERS
     public ResponseEntity<Boolean> hasUserLikedPost(@PathVariable Long postId, @PathVariable Long userId) {
         boolean liked = postService.hasUserLikedPost(postId, userId);
         return ResponseEntity.ok(liked);
     }
 
 
-    @PostMapping("/comment/{postId}/{userId}")
+    @PostMapping("/comment/{postId}/{userId}") //REGISTERED USERS
+    @PreAuthorize("hasAuthority('ROLE_REGISTERED')")
     public ResponseEntity<String> commentOnPost(@PathVariable Long postId, @PathVariable Long userId, @RequestParam("text") String commentTxt) {
         try {
             postService.addComment(postId, userId, commentTxt);
@@ -157,7 +165,7 @@ public class PostController {
         }
     }
 
-    @GetMapping("/getFile/{postId}")
+    @GetMapping("/getFile/{postId}") //ALL USERS
     public ResponseEntity<Map<String, Object>> getFile(@PathVariable Long postId) {
         
         Post post = postService.getPostById(postId);
@@ -171,12 +179,12 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/coordinates/{postId}")
+    @GetMapping("/coordinates/{postId}") //ALL USERS
     public String getPostCoordinates(@PathVariable Long postId) {
         return postService.getCoordinatesByPostId(postId);
     }
 
-    @GetMapping("/canComment/{postId}/{userId}")
+    @GetMapping("/canComment/{postId}/{userId}") //ALL USERS
     public ResponseEntity<Boolean> createComment(@PathVariable Long postId, @PathVariable Long userId) {
         return ResponseEntity.ok(postService.canComment(postId, userId));
     }

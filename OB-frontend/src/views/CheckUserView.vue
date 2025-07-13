@@ -74,7 +74,11 @@ export default {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
@@ -89,7 +93,11 @@ export default {
     },
     async fetchUser() {
       try {
-        const response = await axios.get(`http://localhost:8081/api/accounts/getById/${this.$route.params.userId}`);
+        const response = await axios.get(`http://localhost:8081/api/accounts/getById/${this.$route.params.userId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.user = response.data;
         console.log(this.user)
         this.checkIfFollowing(this.$route.params.userId);
@@ -99,7 +107,11 @@ export default {
     },
     async checkIfFollowing(userId) {
       try {
-        const response = await axios.get(`http://localhost:8081/api/follow/status/${this.loggedInUserId}/${userId}`);
+        const response = await axios.get(`http://localhost:8081/api/follow/status/${this.loggedInUserId}/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.isFollowing = response.data;
       } catch (error) {
         console.error("Error checking follow status:", error);
@@ -109,7 +121,11 @@ export default {
       this.isProcessing = true;
       try {
         const followedId = this.user.id;
-        await axios.post(`http://localhost:8081/api/follow/${this.loggedInUserId}/${followedId}`);
+        await axios.post(`http://localhost:8081/api/follow/${this.loggedInUserId}/${followedId}`, {},  {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.isFollowing = true;
         this.user.followerCount++;
         this.isProcessing = false;
@@ -122,7 +138,11 @@ export default {
       this.isProcessing = true;
       try {
         const followedId = this.user.id;
-        await axios.delete(`http://localhost:8081/api/follow/${this.loggedInUserId}/${followedId}`);
+        await axios.delete(`http://localhost:8081/api/follow/${this.loggedInUserId}/${followedId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.isFollowing = false;
         this.user.followerCount--;
         this.isProcessing = false;
@@ -137,7 +157,11 @@ export default {
     },
     async fetchFollowers() {
       try {
-        const response = await axios.get(`http://localhost:8081/api/follow/followers/${this.user.id}`);
+        const response = await axios.get(`http://localhost:8081/api/follow/followers/${this.user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.followers = response.data;
       } catch (error) {
         console.error("Error fetching followers:", error);

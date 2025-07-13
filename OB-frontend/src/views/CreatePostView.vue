@@ -50,7 +50,11 @@ export default {
     const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const {id, username, role } = response.data;
             this.username = username;
@@ -88,9 +92,10 @@ export default {
             `http://localhost:8081/api/posts/create/${this.userId}`,
             formData,
             {
-                headers: {
-                    "Content-Type": "multipart/form-data" 
-                }
+              headers: {
+                  "Content-Type": "multipart/form-data",
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
             }
         );
         if (response.data) {
@@ -112,7 +117,11 @@ export default {
     },
 
     async likePost() {
-      await axios.post(`http://localhost:8081/api/posts/like/${this.postId}/${this.userId}`);
+      await axios.post(`http://localhost:8081/api/posts/like/${this.postId}/${this.userId}`, {}, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
       this.fetchPosts(); 
     },
 
@@ -120,14 +129,22 @@ export default {
       const comment = {
         text: this.commentText
       };
-      await axios.post(`http://localhost:8081/api/posts/comment/${this.postId}/${this.userId}`, comment);
+      await axios.post(`http://localhost:8081/api/posts/comment/${this.postId}/${this.userId}`, comment, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
       this.commentText = "";
       this.fetchPosts(); 
     },
 
     async fetchPosts() {
       try {
-        const response = await axios.get("http://localhost:8081/api/posts/getAll");
+        const response = await axios.get("http://localhost:8081/api/posts/getAll", {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         this.posts = response.data; 
       } catch (error) {
         console.error("Error fetching posts:", error);
