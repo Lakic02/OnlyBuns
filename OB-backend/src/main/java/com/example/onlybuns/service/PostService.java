@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.onlybuns.config.RateLimiter;
 import com.example.onlybuns.domain.Account;
 import com.example.onlybuns.domain.Comment;
 import com.example.onlybuns.domain.Like;
@@ -35,6 +36,7 @@ import com.example.onlybuns.repository.FollowRepository;
 import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
+import io.micrometer.core.annotation.Timed;
 import jakarta.transaction.Transactional;
 import net.coobird.thumbnailator.Thumbnails;
 
@@ -56,6 +58,7 @@ public class PostService {
     @Autowired
     private FollowRepository followRepository;
 
+    private static final RateLimiter rateLimiter = new RateLimiter(5);
 
     private static final ConcurrentHashMap<Long, Lock> locks = new ConcurrentHashMap<>();
     
@@ -87,8 +90,8 @@ public class PostService {
         return commentRepository.findByPost(post);
     }
 
-
     @Transactional
+    @Timed(value = "http.post.create.time", description = "Time taken to create a post")
     public Post createPost(String description, Double latitude, Double longitude, String file, Long accId) throws IOException {
     Account account = accountRepository.findById(accId)
             .orElseThrow(() -> new RuntimeException("Account not found"));
@@ -137,57 +140,36 @@ public class PostService {
 
     @Transactional
     public void addLike(Long postId, Long userId) throws InterruptedException {
-        Lock lock = locks.get(postId);
+        Post post = postRepository.findByIdWithLock(postId)
+            .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
 
-        if (lock == null) {
-            lock = new ReentrantLock();
-            locks.put(postId, lock);
+        boolean exists = likeRepository.existsByPostIdAndAccountId(postId, userId);
+        if (exists) {
+            throw new RuntimeException("User has already liked this post.");
         }
+        Account account = accountRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-        lock.lock();
-        try {
-            boolean exists = likeRepository.existsByPostIdAndAccountId(postId, userId);
-            if (exists) {
-                throw new RuntimeException("User has already liked this post.");
-            }
-            Like like = new Like();
-            like.setPost(postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId)));
-            like.setAccount(accountRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with ID: " + userId)));
-            like.setCreationTime(LocalDateTime.now());
+        Like like = new Like();
+        like.setPost(post);
+        like.setAccount(account);
+        like.setCreationTime(LocalDateTime.now());
 
-            likeRepository.save(like);
-
-            Thread.sleep(500);
-        } finally {
-            lock.unlock();
-            locks.remove(postId, lock);
-        }
+        likeRepository.save(like);
+        Thread.sleep(5000);
+        //Thread.sleep(20000);
     }
-    
     @Transactional
     public void removeLike(Long postId, Long userId) throws InterruptedException {
-        Lock lock = locks.get(postId);
-    
-        if (lock == null) {
-            lock = new ReentrantLock();
-            locks.put(postId, lock);
+        Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
+        if (like == null) {
+            throw new RuntimeException("Like not found for post ID: " + postId + " and user ID: " + userId);
         }
-    
-        lock.lock();
-        try {
-            // Proverava da li korisnik već lajkovao post
-            Like like = likeRepository.findByPostIdAndAccountId(postId, userId);
-    
-            // Uklanja lajk
-            if(like != null){
-                likeRepository.delete(like);
-            }
-    
-            Thread.sleep(500); // Simulacija pauze ako je potrebno
-        } finally {
-            lock.unlock();
-            locks.remove(postId, lock);
-        }
+        // Like like = likeRepository.findByPostIdAndAccountIdWithLock(postId, userId)
+        //     .orElseThrow(() -> new RuntimeException("Like not found for post ID: " + postId + " and user ID: " + userId));
+
+        likeRepository.delete(like);
+        Thread.sleep(5000);
     }
     
     @Transactional
@@ -208,9 +190,22 @@ public class PostService {
 
         long commentCount = commentRepository.countByAccountIdAndCreationTimeAfter(userId, oneHourAgo);
 
-        if (commentCount >= 60) {
+        /*if (commentCount >= 60) {
             throw new RuntimeException("Comment limit reached. You can post up to 60 comments per hour.");
         }
+
+        if (!rateLimiter.isAllowed(userId)) {
+            throw new RuntimeException("Too many requests. Please wait before commenting again.");
+        }*/
+        if (commentCount >= 60) {
+            throw new RuntimeException("comment_limit_reached"); // Ključna reč za ovaj izuzetak
+        }
+    
+        if (!rateLimiter.isAllowed(userId)) {
+            System.out.println("Throwing rate limit exception for user: " + userId);
+            throw new RuntimeException("too_many_requests"); // Ključna reč za rate limit izuzetak
+        }
+
         Comment comment = new Comment();
 
         comment.setPost(post);

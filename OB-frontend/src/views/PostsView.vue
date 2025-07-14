@@ -117,7 +117,8 @@ export default {
           formData,
           {
             headers: {
-              'Content-Type': 'multipart/form-data'
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }
         );
@@ -132,7 +133,11 @@ export default {
       }
     },
     fetchPosts() {
-      axios.get('http://localhost:8081/api/posts/getAll')
+      axios.get('http://localhost:8081/api/posts/getAll', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          })
         .then(response => {
           this.posts = response.data;
           for (const post of this.posts) {
@@ -154,7 +159,11 @@ export default {
     },
     async fetchPostFile(postId) {
   try {
-    const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`);
+    const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+    });
     
     let imagePath = response.data.imagePath;
     let compress = response.data.compress;
@@ -173,7 +182,11 @@ export default {
 },
     async fetchPostLikes(postId) {
       try {
-        const response = await axios.get(`http://localhost:8081/api/posts/likes/count/${postId}`);
+        const response = await axios.get(`http://localhost:8081/api/posts/likes/count/${postId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         this.postLikes[postId] = response.data;
       } catch (error) {
         console.error('Error fetching likes:', error);
@@ -182,7 +195,11 @@ export default {
     },
     async deletePost(postId){
       try {
-        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`);
+        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
         if(response.data){
           this.posts = []
           this.fetchPosts();
@@ -195,7 +212,11 @@ export default {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;

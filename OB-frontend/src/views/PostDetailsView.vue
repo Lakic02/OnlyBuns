@@ -20,6 +20,9 @@
             <button @click="startEditing(post)" class="pd-action-button">✏️</button>
             <button @click="deletePost(post.id)" class="pd-action-button">🗑️</button>
           </div>
+          <div class="pd-post-actions" v-if="loggedInUserRole === 'admin'">
+            <button @click="publishPost(post.id)" class="pd-action-button">Publish post</button>
+          </div>
         </div>
       </div>
 
@@ -154,6 +157,12 @@
       <div class="pd-loading-spinner"></div>
       <p>Loading post details...</p>
     </div>
+
+    <div v-if="isPopupVisible" class="popup-overlay">
+      <div class="popup-content">
+        <p>{{ popupMessage }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -176,7 +185,10 @@ export default {
       newCommentText: "",
       errorMessage: "",
       displayedComments: [],
-      canComment: false
+      canComment: false,
+      loggedInUserRole: "",
+      isPopupVisible: false, 
+      popupMessage: "",
     };
   },
   
@@ -193,6 +205,37 @@ export default {
   },
 
   methods: {
+    async publishPost(){
+      if (!this.loggedInUserId) return;
+
+      try {
+        await axios.post(
+            `http://localhost:8081/api/posts/publish`, this.post, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
+          );
+
+        this.popupMessage = "Post has been successfully published!";
+        this.isPopupVisible = true;  // Prikazuje popup
+
+        setTimeout(() => {
+          this.isPopupVisible = false;
+        }, 3000);
+
+
+      } catch (error) {
+        console.error('Error publish:', error);
+        this.popupMessage = "There was an error publishing the post.";
+        this.isPopupVisible = true;  // Prikazuje popup
+
+        setTimeout(() => {
+          this.isPopupVisible = false;
+        }, 3000);
+        }
+    },
+
     loadMoreComments() {
       const nextComments = this.comments.slice(this.displayedComments.length, this.displayedComments.length + 5);
       this.displayedComments = [...this.displayedComments, ...nextComments];
@@ -202,7 +245,11 @@ export default {
       
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`
+          `http://localhost:8081/api/posts/hasLiked/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.isLiked = response.data;
       } catch (error) {
@@ -218,12 +265,20 @@ export default {
       try {
         if (this.isLiked) {
           await axios.delete(
-            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/dislike/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
           );
           this.fetchPostLikes()
         } else {
           await axios.post(
-            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`
+            `http://localhost:8081/api/posts/like/${this.$route.params.postId}/${this.loggedInUserId}`, {}, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
           );
           this.fetchPostLikes()
         }
@@ -236,10 +291,15 @@ export default {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token });
+          const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
           if (response.status === 200) {
             const { id, username, role } = response.data;
             this.loggedInUserId = id;
+            this.loggedInUserRole = role;
           }
         } catch (error) {
           console.error('Failed to decode token:', error);
@@ -251,7 +311,11 @@ export default {
     async fetchPostDetails() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/findById/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/findById/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.post = response.data;
         await this.fetchPostFile();
@@ -260,12 +324,18 @@ export default {
       }
     },
     navigateToUser(userId) {
+    console.log('userId')
+    console.log(userId)
       this.$router.push({ name: 'CheckUser', params: { userId } });
     },
     async fetchPostFile() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/getFile/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/getFile/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         
         let imagePath = response.data.imagePath;
@@ -283,7 +353,11 @@ export default {
     async fetchPostLikes() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/likes/count/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/likes/count/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         this.likes = response.data;
       } catch (error) {
@@ -292,7 +366,11 @@ export default {
     },
     async canCommentOnPost(){
         const response = await axios.get(
-          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`)
+          `http://localhost:8081/api/posts/canComment/${this.$route.params.postId}/${this.loggedInUserId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          })
         if(response.data){
           this.canComment=true;
         }
@@ -312,26 +390,48 @@ export default {
 
         const response = await axios.post(
           `http://localhost:8081/api/posts/comment/${this.$route.params.postId}/${this.loggedInUserId}`,
-          formData);
+          formData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         if (response.status === 200) {
           this.newCommentText = "";
           this.fetchComments()
         }
 
       } catch (error) {
+        // if (error.response && error.response.status === 400) {
+        //     this.errorMessage = "You can post up to 60 comments per hour.";
+        //     this.newCommentText = "";
+        // } else {
+        //     this.errorMessage = "An error occurred while posting the comment.";
+        // }
+        // console.error('Error posting comment:', error);
         if (error.response && error.response.status === 400) {
+    const errorMessage = error.response.data;
+
+        if (errorMessage === "comment_limit_reached") {
             this.errorMessage = "You can post up to 60 comments per hour.";
-            this.newCommentText = "";
+        } else if (errorMessage === "too_many_requests") {
+            this.errorMessage = "Too many requests. Please wait before commenting again.";
         } else {
             this.errorMessage = "An error occurred while posting the comment.";
         }
-        console.error('Error posting comment:', error);
+        this.newCommentText = "";
+    } else {
+        this.errorMessage = "An error occurred while posting the comment.";
+    }
       }
     },
     async fetchComments() {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`
+          `http://localhost:8081/api/posts/comments/${this.$route.params.postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          }
         );
         
         this.comments = response.data.sort((a, b) => new Date(b.creationTime) - new Date(a.creationTime));
@@ -378,7 +478,8 @@ export default {
           formData,
           {
             headers: {
-              'Content-Type': 'multipart/form-data'
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }
         );
@@ -394,7 +495,11 @@ export default {
 
     async deletePost(postId) {
       try {
-        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`);
+        const response = await axios.delete(`http://localhost:8081/api/posts/delete/${postId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+          });
         if (response.data) {
           // Navigate back to posts list after deletion
           this.$router.push({ name: 'Posts' });
@@ -787,5 +892,39 @@ export default {
 
 .pd-load-more-button:hover {
   background-color: #d75555;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.popup-content {
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideIn {
+  0% { transform: translateY(-50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 </style>

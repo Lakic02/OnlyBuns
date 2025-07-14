@@ -41,12 +41,21 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
-                                 "/api/authentication/register",
-                                 "/api/authentication/jwt/decode",
+                                 "/api/authentication/register", "/api/authentication/jwt/decode",
                                  "/api/authentication/logIn/**",
                                  "/api/posts/create/**").permitAll() // Dozvoljeno svima 
-                .requestMatchers("/api/accounts/getAll") // Admin end-point-ovi
+                .requestMatchers("/api/accounts/getAll",
+                                 "/api/posts/publish", "/api/analytics/**") // Admin end-point-ovi
                                  .hasAuthority("ROLE_ADMIN") // Samo korisnici sa rolom ADMIN mogu pristupiti
+                .requestMatchers("/api/posts/update/**", 
+                                 "/api/posts/create/**", 
+                                 "/api/posts/delete/**", "/api/posts/like/**", 
+                                 "/api/posts/dislike/**", "/api/posts/comment/**", 
+                                 "/api/chat/**")
+                                 .hasAuthority("ROLE_REGISTERED")
+                .requestMatchers("/api/accounts/getById/**",
+                                 "/api/posts/followed/**", "/api/follow/**")
+                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_REGISTERED") // Admin i korisnik
                 .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

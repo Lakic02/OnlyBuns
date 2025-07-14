@@ -5,6 +5,7 @@ import com.example.onlybuns.service.AccountService;
 
 import jdk.jfr.Frequency;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.*;
 public class AccountController {
   @Autowired
   private AccountService accountService;
+    @Autowired
+    Environment environment;
 
   @GetMapping("/getAll")
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -35,6 +38,8 @@ public class AccountController {
     return accountService.getAccounts(firstName, lastName, email, address, minPosts, maxPosts, page, size, sortField, sortDir);
   }
   @GetMapping("/getById/{accountId}")
+  //@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     public ResponseEntity<Account> getAccountById(@PathVariable Long accountId) {
       Account account = accountService.getAccountById(accountId);
       if (account != null) {
@@ -65,5 +70,4 @@ public class AccountController {
     int followersCount = accountService.countFollowers(accountId);
     return new ResponseEntity<>(followersCount, HttpStatus.OK);
   }
-
 }
