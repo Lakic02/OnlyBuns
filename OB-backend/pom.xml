@@ -122,7 +122,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
-        <!-- <dependency> !!! OSTAVITI ZA TESTIRANJE !!!
+        <!-- <dependency> !!! OSTAVITI ZA TESTIRANJE !!! 
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
         </dependency> -->

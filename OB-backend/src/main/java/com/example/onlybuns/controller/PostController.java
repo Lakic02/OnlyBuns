@@ -34,8 +34,8 @@ public class PostController {
     @Autowired
     private PostService postService;
     
-    //@Autowired
-    //private RestTemplate restTemplate; !!! OSTAVITI ZA TESTIRANJE !!!
+    // @Autowired
+    // private RestTemplate restTemplate; // !!! OSTAVITI ZA TESTIRANJE !!!
     @Autowired
     Environment environment;
 
@@ -45,31 +45,40 @@ public class PostController {
     @PostMapping("/publish") //ADMIN USERS
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public String publishMessage(@RequestBody Post post) {
+        System.out.println("PublishingGGGGGGG message to RabbitMQ...");
         String message = String.format("Description: %s, Time: %s, User: %s",
                 post.getDescription(), post.getCreationTime().toString(), post.getAccount().getUserName());
+        
+        System.out.println("PORUKAAAAAAAAAAAAAAAAA::");
+        System.out.println(message);
         postPublisher.sendMessage(message);
+        System.out.println("PORUKA POSLATAAAAAAAAAAAAAA");
         return "Message sent: " + message;
     }
     
     @GetMapping("/getAll") //ALL USERS
     public ResponseEntity<List<Post>> getPosts() {
-        //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
-        //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
-        //System.out.println(response); !!! OSTAVITI ZA TESTIRANJE !!!
+        // String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); // !!! OSTAVITI ZA TESTIRANJE !!!
+        // System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); // !!! OSTAVITI ZA TESTIRANJE !!!
+        // System.out.println(response); // !!! OSTAVITI ZA TESTIRANJE !!!
         return ResponseEntity.ok(postService.getPosts());
     }
     @GetMapping("/findById/{id}") //ALL USERS
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
-        //String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); !!! OSTAVITI ZA TESTIRANJE !!!
-        //System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); !!! OSTAVITI ZA TESTIRANJE !!!
-        //System.out.println(response); !!! OSTAVITI ZA TESTIRANJE !!!
+        // String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); // !!! OSTAVITI ZA TESTIRANJE !!!
+        // System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); // !!! OSTAVITI ZA TESTIRANJE !!!
+        // System.out.println(response); // !!! OSTAVITI ZA TESTIRANJE !!!
         Optional<Post> post = postService.findById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
     // Dodaj internu metodu za identifikaciju instance
     @GetMapping("/internalGetAll")
     public ResponseEntity<String> internalGetAll() {
-        return ResponseEntity.ok("Handled by port: " + environment.getProperty("local.server.port"));
+        String port = environment.getProperty("local.server.port");
+        if ("8082".equals(port)) {
+            System.out.println(">>> Request handled on port 8082");
+        }
+        return ResponseEntity.ok("Handled by port: " + port);
     }
 
     @GetMapping("/followed/{userId}") //REGISTERED AND ADMIN USERS

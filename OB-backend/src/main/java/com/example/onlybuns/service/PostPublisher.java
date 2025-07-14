@@ -11,7 +11,8 @@ public class PostPublisher {
     private RabbitTemplate rabbitTemplate;
 
     public void sendMessage(String message) {
-        rabbitTemplate.convertAndSend("postExchange", "", message);
+        System.out.println("DA LI JE USLO OVDEEEEEEE::");
+        rabbitTemplate.convertAndSend("postExchange", " ", message);
         System.out.println("Message sent: " + message);
     }
 }
