@@ -60,14 +60,14 @@ public class PostController {
     public ResponseEntity<List<Post>> getPosts() {
         // String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); // !!! OSTAVITI ZA TESTIRANJE !!!
         // System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); // !!! OSTAVITI ZA TESTIRANJE !!!
-        // System.out.println(response); // !!! OSTAVITI ZA TESTIRANJE !!!
+        System.out.println("GETALLL");// !!! OSTAVITI ZA TESTIRANJE !!!
         return ResponseEntity.ok(postService.getPosts());
     }
     @GetMapping("/findById/{id}") //ALL USERS
     public ResponseEntity<Post> getPostById(@PathVariable Long id) {
         // String response = restTemplate.getForObject("http://ONLYBUNS/api/posts/internalGetAll", String.class); // !!! OSTAVITI ZA TESTIRANJE !!!
         // System.out.println("Request handled by port: " + environment.getProperty("local.server.port")); // !!! OSTAVITI ZA TESTIRANJE !!!
-        // System.out.println(response); // !!! OSTAVITI ZA TESTIRANJE !!!
+        System.out.println("FINDBYIDDDD"); // !!! OSTAVITI ZA TESTIRANJE !!!
         Optional<Post> post = postService.findById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }

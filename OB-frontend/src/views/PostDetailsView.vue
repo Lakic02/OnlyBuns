@@ -330,6 +330,7 @@ export default {
     },
     async fetchPostFile() {
       try {
+        console.log('fetchPostFile:');
         const response = await axios.get(
           `http://localhost:8081/api/posts/getFile/${this.$route.params.postId}`, {
             headers: {
@@ -340,6 +341,8 @@ export default {
         
         let imagePath = response.data.imagePath;
         let compress = response.data.compress;
+        console.log('Image path:', imagePath);
+        console.log('Compress:', compress);
 
         imagePath = imagePath.replace(/\\/g, '/');
         this.post.imageUrl = compress === 1
