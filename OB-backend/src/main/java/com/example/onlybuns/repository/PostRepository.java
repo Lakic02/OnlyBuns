@@ -28,9 +28,28 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     @Query("SELECT COUNT(p) FROM Post p WHERE p.creationTime BETWEEN :startDate AND :endDate AND p.isDeleted = false")
     long countPostsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
+    // @Query(value = "SELECT EXTRACT(YEAR FROM creation_time) AS year, COUNT(*) AS count FROM posts WHERE is_deleted = false GROUP BY year ORDER BY year", nativeQuery = true)
+    // List<Object[]> countPostsByYear();
+
+    // @Query(value = "SELECT EXTRACT(YEAR FROM creation_time) AS year, EXTRACT(MONTH FROM creation_time) AS month, COUNT(*) AS count FROM posts WHERE is_deleted = false GROUP BY year, month ORDER BY year, month", nativeQuery = true)
+    // List<Object[]> countPostsByMonth();
+
+    // @Query(value = "SELECT EXTRACT(YEAR FROM creation_time) AS year, EXTRACT(MONTH FROM creation_time) AS month, EXTRACT(WEEK FROM creation_time) AS week, COUNT(*) AS count FROM posts WHERE is_deleted = false GROUP BY year, month, week ORDER BY year, month, week", nativeQuery = true)
+    // List<Object[]> countPostsByWeek();
+
     @Query("SELECT p FROM Post p WHERE p.account IN (SELECT f.followed FROM Follow f WHERE f.follower.id = :followerId) AND p.creationTime > :sevenDaysAgo")
     List<Post> findPostsByFollowedAccountsInLast7Days(@Param("followerId") Long followerId, 
                                                   @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
                                                   
+    // metode za filtriranje po godini
+    @Query(value = "SELECT COUNT(*) FROM posts WHERE EXTRACT(YEAR FROM creation_time) = :year AND is_deleted = false", nativeQuery = true)
+    long countPostsByYear(@Param("year") int year);
 
+    // metode za filtriranje po godini i mesecima
+    @Query(value = "SELECT COUNT(*) FROM posts WHERE EXTRACT(YEAR FROM creation_time) = :year AND EXTRACT(MONTH FROM creation_time) = :month AND is_deleted = false", nativeQuery = true)
+    long countPostsByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+    // metode za dobavljanje postova po nedeljama za određenu godinu i mesec
+    @Query(value = "SELECT EXTRACT(WEEK FROM creation_time) AS week, COUNT(*) AS count FROM posts WHERE EXTRACT(YEAR FROM creation_time) = :year AND EXTRACT(MONTH FROM creation_time) = :month AND is_deleted = false GROUP BY week ORDER BY week", nativeQuery = true)
+    List<Object[]> countPostsByWeekForYearAndMonth(@Param("year") int year, @Param("month") int month);
 }

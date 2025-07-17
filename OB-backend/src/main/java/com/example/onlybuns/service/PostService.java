@@ -140,13 +140,20 @@ public class PostService {
 
     @Transactional
     public void addLike(Long postId, Long userId) throws InterruptedException {
+        String threadName = Thread.currentThread().getName();
+        System.out.println("[" + threadName + "] Pokusava da pristupi metodi addLike()");
+
         Post post = postRepository.findByIdWithLock(postId)
             .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
+        
+        System.out.println("[" + threadName + "] Zakljucao post sa ID: " + postId);
 
         boolean exists = likeRepository.existsByPostIdAndAccountId(postId, userId);
         if (exists) {
+            System.out.println("[" + threadName + "] User je vec lajkovao post");
             throw new RuntimeException("User has already liked this post.");
         }
+
         Account account = accountRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
@@ -156,8 +163,9 @@ public class PostService {
         like.setCreationTime(LocalDateTime.now());
 
         likeRepository.save(like);
+        System.out.println("[" + threadName + "] Uspavljivanje niti na 5 sekundi...");
         Thread.sleep(5000);
-        //Thread.sleep(20000);
+        System.out.println("[" + threadName + "] Zavrsio metodu addLike()");
     }
     @Transactional
     public void removeLike(Long postId, Long userId) throws InterruptedException {
