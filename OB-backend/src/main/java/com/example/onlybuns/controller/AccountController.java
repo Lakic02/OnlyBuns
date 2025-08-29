@@ -43,6 +43,7 @@ public class AccountController {
     public ResponseEntity<Account> getAccountById(@PathVariable Long accountId) {
       Account account = accountService.getAccountById(accountId);
       if (account != null) {
+        System.out.println("Account found: " + account.getLastName());
         return new ResponseEntity<>(account, HttpStatus.OK);
       } else {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Vraća 404 ako korisnik nije pronađen
@@ -70,4 +71,17 @@ public class AccountController {
     int followersCount = accountService.countFollowers(accountId);
     return new ResponseEntity<>(followersCount, HttpStatus.OK);
   }
+
+  // Endpoint za brojanje arzuriranje korisničkog naloga
+  @PutMapping("/update")
+  @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
+  public ResponseEntity<Account> updateAccount(@RequestBody Account updatedAccount) {
+      Account account = accountService.updateAccount(updatedAccount);
+      System.out.println("Updated account: " + account.getLastName());
+      if (account != null) {
+          return new ResponseEntity<>(account, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Vraća 404 ako korisnik nije pronađen
+        }
+    }
 }

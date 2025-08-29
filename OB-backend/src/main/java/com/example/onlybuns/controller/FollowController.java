@@ -24,7 +24,7 @@ public class FollowController {
     boolean isFollowing = followService.checkIfFollowing(followerId, followedId);
     return new ResponseEntity<>(isFollowing, HttpStatus.OK);
   }
-  
+  //Ko mene prati
   @GetMapping("/followers/{followedId}")
   public ResponseEntity<List<Account>> getFollowers(@PathVariable Long followedId) {
     List<Account> followers = followService.getFollowers(followedId);

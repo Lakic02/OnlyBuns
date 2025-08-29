@@ -130,7 +130,9 @@ public class AccountService {
     public Optional<Account> findById(Long id){
         return accountRepository.findById(id);
     }
-
+    public Account updateAccount(Account updatedAccount) {
+        return accountRepository.save(updatedAccount);
+    }
     @Transactional
     @Scheduled(cron = "0 0 0 L * ?", zone = "Europe/Belgrade") // Svaki poslednji dan u mesecu
     public void deleteUnauthenticatedAccounts() {

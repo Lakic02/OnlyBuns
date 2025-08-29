@@ -14,6 +14,9 @@ import PostDetailsView from '@/views/PostDetailsView.vue';
 import CheckUserView from '@/views/CheckUserView.vue';
 import AnalyticsView from '@/views/AnalyticsView.vue';
 import ChatRoomView from '@/views/ChatRoomView.vue';
+import MyPostView from '@/views/MyPostView.vue';
+import MyFollowersView from '@/views/MyFollowersView.vue';
+import MyFollowingView from '@/views/MyFollowingView.vue';
 
 import axios from 'axios';
 
@@ -47,6 +50,30 @@ const router = createRouter({
       path: '/Posts',
       name: 'Posts',
       component: PostsView,
+    },
+    {
+      path: '/MyPosts',
+      name: 'MyPosts',
+      component: MyPostView,
+      meta: {
+        roles: ['admin', 'registered']
+      }
+    },
+    {
+      path: '/MyFollowing',
+      name: 'MyFollowing',
+      component: MyFollowingView,
+      meta: {
+        roles: ['registered']
+      }
+    },
+    {
+      path: '/MyFollowers',
+      name: 'MyFollowers',
+      component: MyFollowersView,
+      meta: {
+        roles: ['registered']
+      }
     },
     {
       path: '/FollowedPosts',
