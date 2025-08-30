@@ -21,7 +21,7 @@ public class AccountController {
     Environment environment;
 
   @GetMapping("/getAll")
-  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
   public Page<Account> getAccounts(
           @RequestParam(required = false) String firstName,
           @RequestParam(required = false) String lastName,

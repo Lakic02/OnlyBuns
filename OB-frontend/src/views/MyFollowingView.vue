@@ -1,17 +1,17 @@
 <template>
   <div class="admin-users-container">
-    <h1 class="admin-users-title">All My Following</h1>
+    <h1 class="admin-users-title">All My Followers</h1>
     
-    <!-- Pretraga -->
+    <!-- Pretraga 
     <div class="admin-users-search">
       <input v-model="search.firstName" placeholder="First Name" @input="fetchUsers" class="admin-users-input"/>
       <input v-model="search.lastName" placeholder="Last Name" @input="fetchUsers" class="admin-users-input"/>
       <input v-model="search.email" placeholder="Email" @input="fetchUsers" class="admin-users-input"/>
       <input v-model.number="search.minPosts" placeholder="Min. number of posts" @input="fetchUsers" class="admin-users-input"/>
       <input v-model.number="search.maxPosts" placeholder="Max. number of posts" @input="fetchUsers" class="admin-users-input"/>
-    </div>
+    </div> -->
 
-    <!-- Sortiranje -->
+    <!-- Sortiranje 
     <div class="admin-users-sort-wrapper">
       <select v-model="sortField" @change="fetchUsers" class="admin-users-select">
         <option value="email">Sort by Email</option>
@@ -21,7 +21,7 @@
         <option value="asc">Ascending (ASC)</option>
         <option value="desc">Descending (DESC)</option>
       </select>
-    </div>
+    </div> -->
     
     <!-- Tabela korisnika -->
     <div class="admin-users-table-wrapper">
@@ -31,8 +31,7 @@
             <th class="admin-users-th">First Name</th>
             <th class="admin-users-th">Last Name</th>
             <th class="admin-users-th">Email</th>
-            <th class="admin-users-th">Number of posts</th>
-            <th class="admin-users-th">Following number</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -41,15 +40,13 @@
             <td class="admin-users-td">{{ user.firstName }}</td>
             <td class="admin-users-td">{{ user.lastName }}</td>
             <td class="admin-users-td">{{ user.email }}</td>
-            <td class="admin-users-td">{{ user.postCount }}</td>
-            <td class="admin-users-td">{{ user.followingCount }}</td>
           </tr>
         </tbody>
       </table>
     </div>
     
-    <!-- Paginacija -->
-    <div class="admin-users-pagination">
+    <!-- Paginacija 
+    <div class="admin-users-pagination"> 
       <button 
         :disabled="users.first" 
         @click="changePage(users.pageable.pageNumber - 1)"
@@ -59,14 +56,15 @@
         :disabled="users.last" 
         @click="changePage(users.pageable.pageNumber + 1)"
         class="admin-users-pagination-btn"
-      >Sledeća</button>
-    </div>
+      >Sledeća</button> 
+    </div> -->
   </div>
 </template>
 
 <script>
 // Script deo ostaje isti
 import axios from 'axios';
+import { get } from 'ol/proj';
 
 export default {
   data() {
@@ -83,15 +81,19 @@ export default {
       sortDir: 'asc',
       currentPage: 0,
       pageSize: 5,
+      loggedInUserId: null
     };
   },
   mounted() {
-    this.fetchUsers();
+    this.loadUserId().then(() => {
+      this.loadAllFollowers();
+    });
   },
   methods: {
     fetchUsers() {
-      console.log(this.sortField)
-      console.log(this.sortDir)
+
+      console.log(this.sortField);
+      console.log(this.sortDir);
       axios.get('http://localhost:8081/api/accounts/getAll', {
         params: {
           firstName: this.search.firstName,
@@ -140,6 +142,47 @@ export default {
     navigateToUser(userId) {
       this.$router.push({ name: 'CheckUser', params: { userId } });
     },
+    async loadUserId() {
+      const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await axios.post("http://localhost:8081/api/authentication/jwt/decode", { token }, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                    });
+          if (response.status === 200) {
+            const { id, username, role } = response.data;
+            this.loggedInUserId = parseInt(id);
+            console.log('User id is: ' + this.loggedInUserId);
+          }
+        } catch (error) {
+          console.error('Failed to decode token:', error);
+        }
+      } else {
+        this.loggedInUserId = null;
+        console.log('User id is: ' + this.loggedInUserId);
+      }
+    },
+    async loadAllFollowers(){
+      axios.get(`http://localhost:8081/api/follow/getFollowing/${this.loggedInUserId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then(response => {
+        // Handle the response data
+        console.log('Followers:', response.data);
+        this.users.content = response.data;
+
+
+        
+        
+      })
+      .catch(error => {
+        console.error('Error loading followers:', error);
+      });
+    }
   }
 };
 </script>

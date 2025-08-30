@@ -42,4 +42,12 @@ public class FollowController {
       followService.unfollowUser(followerId, followedId);
       return ResponseEntity.ok("User successfully unfollowed");
   }
+
+  @GetMapping("/getFollowing/{userId}")
+  public ResponseEntity<List<Account>> getFollowing(@PathVariable Long userId) {
+    System.out.println("ALOOOOO: " + userId);
+    List<Account> following = followService.getFollowing(userId);
+    System.out.println("Following accounts for user " + userId + ": " + following);
+    return new ResponseEntity<>(following, HttpStatus.OK);
+  }
 }

@@ -99,6 +99,14 @@ export default {
                 this.lastLogin = data.lastLogin || '';
 
                 console.log('Fetched user data:', data.lastName);
+                const followersResponse = await axios.get(`http://localhost:8081/api/accounts/countFollowers/${this.loggedInUserId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                this.followers = followersResponse.data || 0;
+
             } catch (error) {
                 console.error('Greška pri dohvatanju podataka:', error);
             }

@@ -43,6 +43,13 @@ public class FollowService {
     return followRepository.findByFollowedId(followedId);
   }
 
+  public List<Account> getFollowing(Long followerId) {
+    List<Long> followingIds = followRepository.findFollowingByFollowerId(followerId);
+    System.out.println("Following IDs for user " + followerId + ": " + followingIds);
+    return accountRepository.findAllById(followingIds);
+    
+  }
+
   @Transactional
   public void followUser(Long followerId, Long followedId) throws InterruptedException {
     // if (followerId.equals(followedId)) {
