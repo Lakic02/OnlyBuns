@@ -22,6 +22,7 @@
           <router-link to="/NearbyPosts">Nearby Posts</router-link>
           <router-link to="/Chat">Chat</router-link>
           <router-link to="/Profile">Profile</router-link>
+          <router-link to="/Map">Map</router-link>
         </div>
       </div>
       <!-- Padajući meni za admine -->

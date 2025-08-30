@@ -17,6 +17,7 @@ import ChatRoomView from '@/views/ChatRoomView.vue';
 import MyPostView from '@/views/MyPostView.vue';
 import MyFollowersView from '@/views/MyFollowersView.vue';
 import MyFollowingView from '@/views/MyFollowingView.vue';
+import MapView from '@/views/MapView.vue';
 
 import axios from 'axios';
 
@@ -119,6 +120,14 @@ const router = createRouter({
       path: '/Profile',
       name: 'Profile',
       component: ProfileView,
+      meta: {
+        roles: ['admin', 'registered']
+      }
+    },
+    {
+      path: '/Map',
+      name: 'Map',
+      component: MapView,
       meta: {
         roles: ['admin', 'registered']
       }
