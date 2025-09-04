@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -110,6 +111,25 @@ public class PostService {
            
             return postRepository.save(post);
     }
+
+
+    public List<Post> getTop10MostLikedPosts() {
+        List<Object[]> results = postRepository.findTop10MostLikedPosts();
+        List<Post> topPosts = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Long postId = ((Number) row[0]).longValue();
+            Optional<Post> postOpt = postRepository.findById(postId);
+            postOpt.ifPresent(topPosts::add);
+        }
+
+        return topPosts;
+    }
+
+    public int getAllPostCount() {
+        return (int) postRepository.count();
+    }
+
 
     @Transactional
     public Post editPost(Long postId, String newDescription) {

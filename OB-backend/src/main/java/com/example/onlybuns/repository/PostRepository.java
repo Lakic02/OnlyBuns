@@ -50,6 +50,24 @@ public interface PostRepository extends JpaRepository<Post,Long>{
     long countPostsByYearAndMonth(@Param("year") int year, @Param("month") int month);
 
     // metode za dobavljanje postova po nedeljama za određenu godinu i mesec
-    @Query(value = "SELECT EXTRACT(WEEK FROM creation_time) AS week, COUNT(*) AS count FROM posts WHERE EXTRACT(YEAR FROM creation_time) = :year AND EXTRACT(MONTH FROM creation_time) = :month AND is_deleted = false GROUP BY week ORDER BY week", nativeQuery = true)
+    @Query(value = "SELECT EXTRACT(WEEK FROM creation_time) AS week,COUNT(*) AS count FROM posts WHERE EXTRACT(YEAR FROM creation_time) = :year AND EXTRACT(MONTH FROM creation_time) = :month AND is_deleted = false GROUP BY week ORDER BY week", nativeQuery = true)
     List<Object[]> countPostsByWeekForYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+    @Query(value = "SELECT l.post_id, COUNT(*) AS like_count " +
+                   "FROM likes l " +
+                   "JOIN posts p ON l.post_id = p.id " +
+                   "WHERE p.is_deleted = false " +
+                   "AND l.creation_time >= NOW() - INTERVAL '7 days' " +
+                   "GROUP BY l.post_id " +
+                   "ORDER BY like_count DESC", nativeQuery = true)
+    List<Object[]> findMostLikedPostsLast7Days();
+
+    @Query(value = "SELECT l.post_id, COUNT(*) AS like_count " +
+                   "FROM likes l " +
+                   "JOIN posts p ON l.post_id = p.id " +
+                   "WHERE p.is_deleted = false " +
+                   "GROUP BY l.post_id " +
+                   "ORDER BY like_count DESC " +
+                   "LIMIT 10", nativeQuery = true)
+    List<Object[]> findTop10MostLikedPosts();
 }

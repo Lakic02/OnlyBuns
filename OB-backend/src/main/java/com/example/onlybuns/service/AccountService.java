@@ -7,8 +7,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import com.example.onlybuns.domain.Account;
+import com.example.onlybuns.domain.Post;
 import com.example.onlybuns.repository.AccountRepository;
 import com.example.onlybuns.repository.FollowRepository;
+import com.example.onlybuns.repository.LikeRepository;
 import com.example.onlybuns.repository.PostRepository;
 
 import jakarta.transaction.Transactional;
@@ -30,7 +32,8 @@ public class AccountService {
     private FollowRepository followRepository;
     @Autowired
     private NotificationService notificationService;
-
+    @Autowired
+    private LikeRepository likeRepository;
     
     public Account getAccountById(Long accountId) {
         return accountRepository.findById(accountId).orElse(null);
@@ -133,6 +136,48 @@ public class AccountService {
     public Account updateAccount(Account updatedAccount) {
         return accountRepository.save(updatedAccount);
     }
+
+    public List<Post> get5MostPopularPosts(){
+
+        List<Object[]> results = postRepository.findMostLikedPostsLast7Days();
+        List<Post> popularPosts = new ArrayList<>();
+
+        int count = 0;
+        for (Object[] row : results) {
+            if (count >= 5) break;  // samo top 5
+            Long postId = ((Number) row[0]).longValue();
+            Optional<Post> postOpt = postRepository.findById(postId);
+            postOpt.ifPresent(popularPosts::add);
+            count++;
+        }
+
+        return popularPosts;
+    }
+
+    public List<Account> get10MostActiveAccounts() {
+        System.out.println("USLO U MOST ACTIVE ACCOUNTS");
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+
+        List<Object[]> likeResults = likeRepository.findTopAccountsLast7Days(oneWeekAgo);
+
+        System.out.println("Top accounts in last 7 days:");
+        for (Object[] row : likeResults) {
+            Long accountId = (Long) row[0];  // prvi element u nizu je account.id
+            Long likeCount = (Long) row[1]; // drugi element je broj lajkova
+        System.out.println("Account ID: " + accountId + " | Likes: " + likeCount);
+        }
+
+        return likeResults.stream()
+        .limit(10)
+        .map(result -> {
+            Long accountId = (Long) result[0];
+            return accountRepository.findById(accountId)
+                    .orElse(null);
+        })
+        .filter(Objects::nonNull)
+        .toList();
+    }
+
     @Transactional
     @Scheduled(cron = "0 0 0 L * ?", zone = "Europe/Belgrade") // Svaki poslednji dan u mesecu
     public void deleteUnauthenticatedAccounts() {

@@ -2,6 +2,7 @@ package com.example.onlybuns.repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -30,4 +31,12 @@ public interface LikeRepository extends JpaRepository<Like,Long>{
     @Query("SELECT COUNT(l) FROM Like l WHERE l.post.account.id = :accountId AND l.creationTime > :sevenDaysAgo")
     long countLikesByAccountInLast7Days(@Param("accountId") Long accountId, 
                                     @Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+
+    @Query("SELECT l.account.id, COUNT(l.id) AS likeCount " +
+       "FROM Like l " +
+       "WHERE l.creationTime >= :sevenDaysAgo " +
+       "GROUP BY l.account.id " +
+       "ORDER BY likeCount DESC")
+    List<Object[]> findTopAccountsLast7Days(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+
 }

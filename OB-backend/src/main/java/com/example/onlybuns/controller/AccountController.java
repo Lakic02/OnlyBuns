@@ -1,6 +1,7 @@
 package com.example.onlybuns.controller;
 
 import com.example.onlybuns.domain.Account;
+import com.example.onlybuns.domain.Post;
 import com.example.onlybuns.service.AccountService;
 
 import jdk.jfr.Frequency;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.*;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -63,6 +66,12 @@ public class AccountController {
   public ResponseEntity<Integer> countFollowing(@PathVariable Long accountId) {
     int followingCount = accountService.countFollowing(accountId);
     return new ResponseEntity<>(followingCount, HttpStatus.OK);
+  }
+
+  @GetMapping("/get10MostActiveAccount")
+  public ResponseEntity<List<Account>> get10MostActiveAccounts() {
+    List<Account> mostActiveAccounts = accountService.get10MostActiveAccounts();
+    return new ResponseEntity<>(mostActiveAccounts, HttpStatus.OK);
   }
 
   // Endpoint za brojanje pratilaca korisnika

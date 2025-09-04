@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+
+
 import com.example.onlybuns.domain.Comment;
 import com.example.onlybuns.domain.Post;
+import com.example.onlybuns.service.AccountService;
 import com.example.onlybuns.service.PostPublisher;
 import com.example.onlybuns.service.PostService;
+import com.example.onlybuns.repository.AccountRepository;
 
 import io.micrometer.core.annotation.Timed;
 
@@ -33,6 +37,8 @@ import io.micrometer.core.annotation.Timed;
 public class PostController {
     @Autowired
     private PostService postService;
+    @Autowired
+    private AccountService accountService;
     
     // @Autowired
     // private RestTemplate restTemplate; // !!! OSTAVITI ZA TESTIRANJE !!!
@@ -55,6 +61,25 @@ public class PostController {
         System.out.println("PORUKA POSLATAAAAAAAAAAAAAA");
         return "Message sent: " + message;
     }
+    
+    @GetMapping("/get5MostPopularPosts")
+    public ResponseEntity<List<Post>> get5MostPopularPosts() {
+        List<Post> mostPopularPosts = accountService.get5MostPopularPosts();
+        return new ResponseEntity<>(mostPopularPosts, HttpStatus.OK);
+    }
+
+    @GetMapping("/get10MostLikedPosts")
+    public ResponseEntity<List<Post>> getTop10MostLikedPosts() {
+        List<Post> topPosts = postService.getTop10MostLikedPosts();
+        return new ResponseEntity<>(topPosts, HttpStatus.OK);
+    }
+
+    @GetMapping("/getAllPostCount")
+    public ResponseEntity<Integer> getAllPostCount() {
+        int count = postService.getAllPostCount();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+    
     
     @GetMapping("/getAll") //ALL USERS
     public ResponseEntity<List<Post>> getPosts() {
