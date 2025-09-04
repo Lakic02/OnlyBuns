@@ -1,10 +1,11 @@
 <template>
   <div>
     <div class="controls">
-      <button @click="increaseRadius">Povećaj radius (+1km)</button>
-      <button @click="decreaseRadius" :disabled="radius <= 1">Smanji radius (-1km)</button>
-      <p>Trenutni radius: {{ radius }} km</p>
-      <router-link to="/Profile" class="profile-btn">Profil</router-link>
+      <button @click="increaseRadius">Increase radius (+1km)</button>
+      <button @click="decreaseRadius" :disabled="radius <= 1">Decrease radius (-1km)</button>
+      <p>
+        Current radius: {{ radius }} km</p>
+      <router-link to="/Profile" class="profile-btn">Profile</router-link>
     </div>
     
     <!-- Dodali smo klasu custom-map -->
@@ -40,6 +41,7 @@ export default {
       userAddress: '',
       radius: 1, // Početni radius u km
       posts: [], // Lista postova
+      postsFromLoggedUser: [],
       userLatitude: 44.80920324246111, // Default latitude (Beograd)
       userLongitude: 20.465976243346777, // Default longitude
       circleLayer: null,
@@ -179,13 +181,17 @@ export default {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
         });
-        this.posts = response.data.filter(post => post.latitude && post.longitude);
+        this.posts = response.data.filter(post => post.latitude && post.longitude &&  post.account.id !== this.loggedInUserId);
 
+        //TO DO: obrisati svoje objave iz prikazivanja
+
+        
         // filtriramo po radiusu
         this.posts = this.posts.filter(post => {
           const distance = this.calculateDistance(
           this.userLatitude, this.userLongitude,
-          post.latitude, post.longitude
+          post.latitude, post.longitude,
+          console.log('user id from POSTS: ' + post.account.id),
       );
       return distance <= this.radius; // vraća samo one unutar radiusa
       });
@@ -272,6 +278,7 @@ export default {
     },
 
     setupMapClickListener() {
+  
       if (!this.$refs.mapComponent || !this.$refs.mapComponent.map) return;
       this.$refs.mapComponent.map.on('click', (e) => {
         const lonLat = toLonLat(e.coordinate);
@@ -298,7 +305,7 @@ export default {
       this.circleSource.clear();
 
       const center = fromLonLat([this.userLongitude, this.userLatitude]);
-      const circle = new CircleGeom(center, this.radius * 1000); // radius u metrima
+      const circle = new CircleGeom(center, this.radius * 1200); // radius u metrima
       const feature = new Feature(circle);
       this.circleSource.addFeature(feature);
     },
@@ -331,14 +338,15 @@ export default {
         fromLonLat([this.addressLongitude, this.addressLatitude]),
         "red" // boja crvena za korisnika
       );
-      }
+      } //sakrivam ikonicu klika sa ovim.
 
       // Dodavanje markera za svaki post iz this.posts
       this.posts.forEach(post => {
+        console.log('Post add id: ', post);
         this.$refs.mapComponent.addMarker(
-          fromLonLat([post.longitude, post.latitude])
-          // po potrebi možeš dodati i boju ili ikonicu specifičnu za post
+          fromLonLat([post.longitude, post.latitude]), post.imagePath, post.id
         );
+        console.log('Added marker for post at:', post.latitude, post.longitude);
       });
     },
 
