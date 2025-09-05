@@ -70,4 +70,10 @@ public interface PostRepository extends JpaRepository<Post,Long>{
                    "ORDER BY like_count DESC " +
                    "LIMIT 10", nativeQuery = true)
     List<Object[]> findTop10MostLikedPosts();
+
+    @Query(value = "SELECT COUNT(*) " +
+                   "FROM posts p " +
+                   "WHERE p.is_deleted = false " +
+                   "AND p.creation_time >= NOW() - INTERVAL '7 days'", nativeQuery = true)
+    Long countPostsCreatedLast7Days();
 }

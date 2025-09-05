@@ -74,6 +74,12 @@ public class PostController {
         return new ResponseEntity<>(topPosts, HttpStatus.OK);
     }
 
+    @GetMapping("/countPostsLast7Days")
+    public ResponseEntity<Long> getNumberOfPostsLast7Days() {
+        Long count = postService.getNumberOfPostsLast7Days();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
     @GetMapping("/getAllPostCount")
     public ResponseEntity<Integer> getAllPostCount() {
         int count = postService.getAllPostCount();

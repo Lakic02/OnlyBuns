@@ -204,7 +204,10 @@ public class PostService {
     public boolean hasUserLikedPost(Long postId, Long userId) {
         return likeRepository.existsByPostIdAndAccountId(postId, userId);
     }
-    
+
+    public Long getNumberOfPostsLast7Days() {
+        return postRepository.countPostsCreatedLast7Days();
+    }
 
     @Transactional
     public Comment addComment(Long postId, Long userId, String commentTxt) {
