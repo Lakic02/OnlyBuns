@@ -7,10 +7,19 @@
           <input type="email" id="email" v-model="form.email" class="registration-input" required />
         </div>
   
-        <div class="registration-input-group">
-          <label for="username">Username:</label>
-          <input type="text" id="username" v-model="form.username" class="registration-input" required />
+          <div class="registration-input-group">
+            <label for="username">Username:</label>
+              <input
+                type="text"
+                id="username"
+                v-model="form.username"
+                @input="checkUsername"
+                class="registration-input"
+                required
+              />
+          <span v-if="usernameTaken" class="error">Username is already taken</span>
         </div>
+
   
         <div class="registration-input-group">
           <label for="name">Name:</label>
@@ -55,7 +64,7 @@
         confirmPassword: '',
         address: '',
       });
-  
+      const usernameTaken = ref(false);
       const errors = ref({
         email: null,
         username: null,
@@ -90,6 +99,27 @@
         validateUsername();
         validatePassword();
         validateConfirmPassword();
+
+        console.log('Username taken:', usernameTaken.value);
+        console.log('User NAME: :', form.value.username);
+
+        if (form.value.username.length === 0) {
+          usernameTaken.value = false;
+          return;
+        }
+        try {
+          const response = await axios.get(
+          `http://localhost:8081/api/authentication/check-username/${form.value.username}`
+          );
+          usernameTaken.value = response.data; // backend vraća { taken: true/false } true == slobodno ime false == zauzeto
+          console.log('Username taken:', usernameTaken.value);
+          if(usernameTaken.value == false){
+            alert('Username is already taken');
+          }
+        } catch (error) {
+          console.error("Error checking username:", error);
+        }
+        
   
         const payload = {
           firstName: form.value.name,
@@ -102,7 +132,7 @@
         console.log('Registration data:', payload);
         console.log('errori: ', hasErrors.value);
   
-        if (!hasErrors.value) {
+        if (!hasErrors.value && usernameTaken.value == true) {
           try {
             const response = await axios.post('http://localhost:8081/api/authentication/register', payload, {
             headers: {

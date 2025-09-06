@@ -8,6 +8,7 @@ import com.example.onlybuns.domain.Token;
 import com.example.onlybuns.repository.EmailVerificationTokenRepository;
 import com.example.onlybuns.service.AccountService;
 import com.example.onlybuns.service.AuthenticationService;
+import com.example.onlybuns.service.BloomFilterService;
 import com.example.onlybuns.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,8 @@ public class AuthenticationController {
 
     @Autowired
     private AccountService accountService;
+    @Autowired
+    private BloomFilterService bloomFilterService;
 
     /*@PostMapping("/register") //mozda bi trebalo AccountDTO jer je sa fronta,razmislicu jos
     public ResponseEntity<JWTUser> registerAccount(@RequestBody Account acc){
@@ -61,6 +64,12 @@ public class AuthenticationController {
             System.out.println("Add user failed - POST ADD USER" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register user");
         }
+    }
+
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<Boolean> checkUserName(@PathVariable String username) {
+        boolean mightExist = bloomFilterService.mightExist(username);
+        return ResponseEntity.ok(!mightExist); // true znači da je slobodno
     }
 
     @RequestMapping(value = "/confirm-account", method = {RequestMethod.GET, RequestMethod.POST})
