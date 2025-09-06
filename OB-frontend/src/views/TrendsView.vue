@@ -110,25 +110,35 @@ export default {
   methods: {
     async fetchTrendingData() {
       try {
-        const responseTotalPosts = await axios.get("http://localhost:8081/api/posts/getAllPostCount");
+        const responseTotalPosts = await axios.get("http://localhost:8081/api/posts/getAllPostCount",{
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         this.totalPosts = responseTotalPosts.data;
 
-        const responsePostsLast7Days = await axios.get("http://localhost:8081/api/posts/countPostsLast7Days");
+        const responsePostsLast7Days = await axios.get("http://localhost:8081/api/posts/countPostsLast7Days",{
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         this.postsLast7Days = responsePostsLast7Days.data;
 
-        const responseMostActiveUsers = await axios.get("http://localhost:8081/api/accounts/get10MostActiveAccount");
+        const responseMostActiveUsers = await axios.get("http://localhost:8081/api/accounts/get10MostActiveAccount",{
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         this.mostActiveUsers = responseMostActiveUsers.data;
-
+        /*
         while (this.mostActiveUsers.length < 10) {
           const copy = { ...this.mostActiveUsers[this.mostActiveUsers.length % 2] };
           copy.id = copy.id + "_copy" + this.mostActiveUsers.length;
           this.mostActiveUsers.push(copy);
-        }
+        }*/
 
-        const responseMostPopularPostsInLast7Days = await axios.get("http://localhost:8081/api/posts/get5MostPopularPosts");
+        const responseMostPopularPostsInLast7Days = await axios.get("http://localhost:8081/api/posts/get5MostPopularPosts",{
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         this.mostPopularPostsInLast7Days = responseMostPopularPostsInLast7Days.data;
 
-        const responseMostPopularPostsOfAllTime = await axios.get("http://localhost:8081/api/posts/get10MostLikedPosts");
+        const responseMostPopularPostsOfAllTime = await axios.get("http://localhost:8081/api/posts/get10MostLikedPosts",{
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         this.mostPopularPostsOfAllTime = responseMostPopularPostsOfAllTime.data;
 
         // Fetch slike i lajkove za sve postove
