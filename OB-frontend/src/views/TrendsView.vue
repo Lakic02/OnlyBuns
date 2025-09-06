@@ -9,36 +9,88 @@
     </div>
 
     <div class="grid-item trending-info" style="grid-column: 4; grid-row: 2;">
-      <label>Posts Number in last 7 days: <strong>{{ postsLast7Days }}</strong></label>
+      <label>Posts in last 7 days: <strong>{{ postsLast7Days }}</strong></label>
     </div>
 
-    <div class="grid-item trending-subtitle" style="grid-column: 2/4; grid-row: 3;">
-      <label>Top 10 Most Active Accounts in last 7 days:</label>
+    <div class="grid-item trending-subtitle" style="grid-column: 2/5; grid-row: 3;">
+      <label>Top 10 The Most Active Accounts in last 7 days:</label>
     </div>
 
-    <div class="grid-item trending-table-wrapper" style="grid-column: 2/4; grid-row: 4;">
+    <div class="grid-item trending-table-wrapper" style="grid-column: 2/5; grid-row: 4;">
       <table class="trending-table">
         <thead>
           <tr>
             <th class="trending-th">First Name</th>
             <th class="trending-th">Last Name</th>
-            <th class="trending-th">Number of Likes</th>
+            <th class="trending-th">Email</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="user in mostActiveUsers" :key="user.id" class="trending-tr">
             <td class="trending-td">{{ user.firstName }}</td>
             <td class="trending-td">{{ user.lastName }}</td>
-            <td class="trending-td">{{ user.numberOfLike}}</td>
+            <td class="trending-td">{{ user.email }}</td>
           </tr>
         </tbody>
       </table>
+    </div>
+    
+    <!-- Najpopularnije objave (7 dana) -->
+    <div class="grid-item trending-subtitle" style="grid-column: 2/5; grid-row: 5;">
+      <label>Top 5 Most Popular Posts in last 7 days:</label>
+    </div>
+
+    <div class="grid-item post-container" style="grid-column: 1/5; grid-row: 6;">
+      <div v-for="post in mostPopularPostsInLast7Days" :key="post.id" class="post-card" @click="navigateToPostDetails(post.id)">
+        <div class="post-header">
+          <img v-if="post.account.profileImage" :src="post.account.profileImage" alt="User Profile" class="profile-image" />
+          <div class="post-meta">
+            <h3>{{ post.account.userName }}</h3>
+            <p class="post-date">{{ formatDate(post.creationTime) }}</p>
+          </div>
+        </div>
+
+        <div class="post-body">
+          <p>{{ post.content }}</p>
+          <img v-if="post.imagePath" :src="post.imagePath" alt="Post Image" class="post-image" />
+        </div>
+
+        <div class="post-footer">
+          <span>{{ postLikes[post.id] || 0 }} Likes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Najpopularnije objave (all time) -->
+    <div class="grid-item trending-subtitle" style="grid-column: 2/5; grid-row: 7;">
+      <label>Top 10 Most Popular Posts (All Time):</label>
+    </div>
+
+    <div class="grid-item post-container" style="grid-column: 2/5; grid-row: 8;">
+      <div v-for="post in mostPopularPostsOfAllTime" :key="post.id" class="post-card" @click="navigateToPostDetails(post.id)">
+        <div class="post-header">
+          <img v-if="post.account.profileImage" :src="post.account.profileImage" alt="User Profile" class="profile-image" />
+          <div class="post-meta">
+            <h3>{{ post.account.userName }}</h3>
+            <p class="post-date">{{ formatDate(post.creationTime) }}</p>
+          </div>
+        </div>
+
+        <div class="post-body">
+          <p>{{ post.content }}</p>
+          <img v-if="post.imagePath" :src="post.imagePath" alt="Post Image" class="post-image" />
+        </div>
+
+        <div class="post-footer">
+          <span>{{ postLikes[post.id] || 0 }} Likes</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
   name: "InvisibleGrid",
@@ -47,20 +99,89 @@ export default {
       totalPosts: 0,
       postsLast7Days: 0,
       mostActiveUsers: [],
+      mostPopularPostsInLast7Days: [],
+      mostPopularPostsOfAllTime: [],
+      postLikes: {} // Dodato za broj lajkova
     };
   },
   mounted() {
-    this.fetchMostActiveUsers();
+    this.fetchTrendingData();
   },
   methods: {
-    async fetchMostActiveUsers() {
+    async fetchTrendingData() {
       try {
-        const response = await axios.get();
+        const responseTotalPosts = await axios.get("http://localhost:8081/api/posts/getAllPostCount");
+        this.totalPosts = responseTotalPosts.data;
+
+        const responsePostsLast7Days = await axios.get("http://localhost:8081/api/posts/countPostsLast7Days");
+        this.postsLast7Days = responsePostsLast7Days.data;
+
+        const responseMostActiveUsers = await axios.get("http://localhost:8081/api/accounts/get10MostActiveAccount");
+        this.mostActiveUsers = responseMostActiveUsers.data;
+
+        while (this.mostActiveUsers.length < 10) {
+          const copy = { ...this.mostActiveUsers[this.mostActiveUsers.length % 2] };
+          copy.id = copy.id + "_copy" + this.mostActiveUsers.length;
+          this.mostActiveUsers.push(copy);
+        }
+
+        const responseMostPopularPostsInLast7Days = await axios.get("http://localhost:8081/api/posts/get5MostPopularPosts");
+        this.mostPopularPostsInLast7Days = responseMostPopularPostsInLast7Days.data;
+
+        const responseMostPopularPostsOfAllTime = await axios.get("http://localhost:8081/api/posts/get10MostLikedPosts");
+        this.mostPopularPostsOfAllTime = responseMostPopularPostsOfAllTime.data;
+
+        // Fetch slike i lajkove za sve postove
+        [...this.mostPopularPostsInLast7Days, ...this.mostPopularPostsOfAllTime].forEach(post => {
+          this.fetchPostFile(post.id);
+          this.fetchPostLikes(post.id);
+        });
+
       } catch (error) {
-        console.error('Error fetching trending data:', error);
+        console.error("Error fetching trending data:", error);
       }
     },
-  },
+    navigateToPostDetails(postId) {
+      this.$router.push(`/PostDetails/${postId}`);
+    },
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    },
+    async fetchPostFile(postId) {
+      try {
+        const response = await axios.get(`http://localhost:8081/api/posts/getFile/${postId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+
+        let imagePath = response.data.imagePath;
+        let compress = response.data.compress;
+        imagePath = imagePath.replace(/\\/g, "/");
+
+        const fullPath = compress === 1
+          ? `http://localhost:8081/compressedImages/${imagePath}`
+          : `http://localhost:8081/images/${imagePath}`;
+
+       const targetInLast7Days = this.mostPopularPostsInLast7Days.find(p => p.id == postId);
+       const targetInAllTime = this.mostPopularPostsOfAllTime.find(p => p.id == postId);
+        if (targetInLast7Days) targetInLast7Days.imagePath = fullPath;
+        if (targetInAllTime) targetInAllTime.imagePath = fullPath;
+      } catch (error) {
+        console.error("Error fetching file:", error);
+      }
+    },
+    async fetchPostLikes(postId) {
+      try {
+        const response = await axios.get(`http://localhost:8081/api/posts/likes/count/${postId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+        this.postLikes[postId] = response.data;
+      } catch (error) {
+        console.error("Error fetching likes:", error);
+        this.postLikes[postId] = 0;
+      }
+    }
+  }
 };
 </script>
 

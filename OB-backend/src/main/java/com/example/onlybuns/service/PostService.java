@@ -206,7 +206,9 @@ public class PostService {
     }
 
     public Long getNumberOfPostsLast7Days() {
-        return postRepository.countPostsCreatedLast7Days();
+        Long count = postRepository.countPostsCreatedLast7Days();
+        System.out.println("Number of posts in the last 7 days: " + count.toString());
+        return count;
     }
 
     @Transactional
