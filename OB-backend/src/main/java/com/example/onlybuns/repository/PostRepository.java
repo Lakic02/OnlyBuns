@@ -14,6 +14,9 @@ import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import org.hibernate.annotations.QueryHints;
+import jakarta.persistence.QueryHint;
+
 public interface PostRepository extends JpaRepository<Post,Long>{
     // Metoda za pronalaženje posta po ID-u koji nije logički obrisan
     Optional<Post> findByIdAndIsDeletedFalse(Long id);
@@ -60,15 +63,26 @@ public interface PostRepository extends JpaRepository<Post,Long>{
                    "AND l.creation_time >= NOW() - INTERVAL '7 days' " +
                    "GROUP BY l.post_id " +
                    "ORDER BY like_count DESC", nativeQuery = true)
+    @org.springframework.data.jpa.repository.QueryHints(
+    value = {
+        @QueryHint(name = QueryHints.CACHEABLE, value = "true")
+    }
+    )
     List<Object[]> findMostLikedPostsLast7Days();
 
+    
     @Query(value = "SELECT l.post_id, COUNT(*) AS like_count " +
-                   "FROM likes l " +
-                   "JOIN posts p ON l.post_id = p.id " +
-                   "WHERE p.is_deleted = false " +
-                   "GROUP BY l.post_id " +
-                   "ORDER BY like_count DESC " +
-                   "LIMIT 10", nativeQuery = true)
+               "FROM likes l " +
+               "JOIN posts p ON l.post_id = p.id " +
+               "WHERE p.is_deleted = false " +
+               "GROUP BY l.post_id " +
+               "ORDER BY like_count DESC " +
+               "LIMIT 10", nativeQuery = true)
+    @org.springframework.data.jpa.repository.QueryHints(
+    value = {
+        @QueryHint(name = QueryHints.CACHEABLE, value = "true")
+    }
+    )
     List<Object[]> findTop10MostLikedPosts();
 
     @Query(value = "SELECT COUNT(*) " +

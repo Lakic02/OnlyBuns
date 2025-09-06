@@ -2,9 +2,14 @@ package com.example.onlybuns.domain;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 
 @Entity
 @Table(name = "Posts")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

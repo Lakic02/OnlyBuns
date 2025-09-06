@@ -20,6 +20,8 @@ import java.time.temporal.ChronoUnit;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 
 @Service
@@ -137,8 +139,10 @@ public class AccountService {
         return accountRepository.save(updatedAccount);
     }
 
+    
+    @Cacheable("get5MostPopularPosts")
     public List<Post> get5MostPopularPosts(){
-
+        System.out.println("Test2 L2 keširanja -> ide u bazu!");
         List<Object[]> results = postRepository.findMostLikedPostsLast7Days();
         List<Post> popularPosts = new ArrayList<>();
 

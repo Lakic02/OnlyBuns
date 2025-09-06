@@ -40,6 +40,8 @@ import com.example.onlybuns.repository.PostRepository;
 import io.micrometer.core.annotation.Timed;
 import jakarta.transaction.Transactional;
 import net.coobird.thumbnailator.Thumbnails;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PostService {
@@ -112,8 +114,9 @@ public class PostService {
             return postRepository.save(post);
     }
 
-
+    @Cacheable("top10MostLikedPosts")
     public List<Post> getTop10MostLikedPosts() {
+        System.out.println("Test L2 keširanja -> ide u bazu!");
         List<Object[]> results = postRepository.findTop10MostLikedPosts();
         List<Post> topPosts = new ArrayList<>();
 

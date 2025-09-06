@@ -33,7 +33,6 @@ import io.micrometer.core.annotation.Timed;
 
 @RestController
 @RequestMapping("/api/posts")
-//@PreAuthorize("hasAuthority('registered')")
 public class PostController {
     @Autowired
     private PostService postService;
@@ -62,30 +61,33 @@ public class PostController {
         return "Message sent: " + message;
     }
     
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     @GetMapping("/get5MostPopularPosts")
     public ResponseEntity<List<Post>> get5MostPopularPosts() {
         List<Post> mostPopularPosts = accountService.get5MostPopularPosts();
         return new ResponseEntity<>(mostPopularPosts, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     @GetMapping("/get10MostLikedPosts")
     public ResponseEntity<List<Post>> getTop10MostLikedPosts() {
         List<Post> topPosts = postService.getTop10MostLikedPosts();
         return new ResponseEntity<>(topPosts, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     @GetMapping("/countPostsLast7Days")
     public ResponseEntity<Long> getNumberOfPostsLast7Days() {
         Long count = postService.getNumberOfPostsLast7Days();
         return new ResponseEntity<>(count, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
     @GetMapping("/getAllPostCount")
     public ResponseEntity<Integer> getAllPostCount() {
         int count = postService.getAllPostCount();
         return new ResponseEntity<>(count, HttpStatus.OK);
     }
-    
     
     @GetMapping("/getAll") //ALL USERS
     public ResponseEntity<List<Post>> getPosts() {

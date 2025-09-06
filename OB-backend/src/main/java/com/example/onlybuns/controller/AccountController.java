@@ -67,7 +67,7 @@ public class AccountController {
     int followingCount = accountService.countFollowing(accountId);
     return new ResponseEntity<>(followingCount, HttpStatus.OK);
   }
-
+  @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_REGISTERED')")
   @GetMapping("/get10MostActiveAccount")
   public ResponseEntity<List<Account>> get10MostActiveAccounts() {
     List<Account> mostActiveAccounts = accountService.get10MostActiveAccounts();

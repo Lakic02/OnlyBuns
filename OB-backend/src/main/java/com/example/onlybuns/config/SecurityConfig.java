@@ -24,7 +24,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 @SuppressWarnings("unused")
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -54,7 +53,8 @@ public class SecurityConfig {
                                  "/api/chat/**")
                                  .hasAuthority("ROLE_REGISTERED")
                 .requestMatchers("/api/accounts/getById/**",
-                                 "/api/posts/followed/**", "/api/follow/**")
+                                 "/api/posts/followed/**", "/api/follow/**",
+                                 "/api/posts/getAllPostCount","/api/posts/get5MostPopularPosts","/api/posts/get10MostLikedPosts")
                                  .hasAnyAuthority("ROLE_ADMIN", "ROLE_REGISTERED") // Admin i korisnik
                 .anyRequest().permitAll()
             )
