@@ -15,6 +15,8 @@ public class AuthenticationService {
     private BloomFilterService bloomFilterService;
 
     //public Account updateAccount(Account acc){ return accountRepository.update(acc);}
+
+
     public Account registerAccount(Account acc) {
         // Proverimo Bloom filter
         if (bloomFilterService.mightExist(acc.getUserName())) {

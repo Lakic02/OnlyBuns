@@ -10,6 +10,10 @@ import com.example.onlybuns.service.AccountService;
 import com.example.onlybuns.service.AuthenticationService;
 import com.example.onlybuns.service.BloomFilterService;
 import com.example.onlybuns.service.EmailService;
+import com.example.onlybuns.service.LoginRateLimiter;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +37,8 @@ public class AuthenticationController {
     private AccountService accountService;
     @Autowired
     private BloomFilterService bloomFilterService;
+    @Autowired
+    private LoginRateLimiter loginRateLimiter;
 
     /*@PostMapping("/register") //mozda bi trebalo AccountDTO jer je sa fronta,razmislicu jos
     public ResponseEntity<JWTUser> registerAccount(@RequestBody Account acc){
@@ -96,7 +102,14 @@ public class AuthenticationController {
     }
 
     @GetMapping("/logIn/{username}/{password}")
-    public ResponseEntity<String> logIn(@PathVariable String username, @PathVariable String password) {
+    public ResponseEntity<String> logIn(@PathVariable String username, @PathVariable String password,HttpServletRequest request) {
+        
+        String ip = request.getRemoteAddr();
+
+        if (!loginRateLimiter.tryConsume(ip)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many login attempts. Try again later.");
+        }
+        
         try {
             String email = username;
             Account acc = authenticationService.findAccountByEmailAndPassword(email, password);
