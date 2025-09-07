@@ -20,10 +20,17 @@ public class AuthenticationService {
     public Account registerAccount(Account acc) {
         // Proverimo Bloom filter
         if (bloomFilterService.mightExist(acc.getUserName())) {
-            // Postoji mala verovatnoća da je false positive
+            // ture == slobodno ime
             if (accountRepository.findByUserNameAndPassword(acc.getUserName(), acc.getPassword()) != null) {
                 throw new RuntimeException("Username is already taken");
             }
+        }
+
+        // Simulacija kašnjenja – da bismo testirali konkurentnost
+        try {
+            Thread.sleep(5000); // 5 sekundi kašnjenja
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         Account savedAcc = accountRepository.save(acc);
