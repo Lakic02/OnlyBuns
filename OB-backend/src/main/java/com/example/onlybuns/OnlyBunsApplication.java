@@ -1,16 +1,20 @@
 package com.example.onlybuns;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 // import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer; //!!! OSTAVITI ZA TESTIRANJE !!!
 
 @SpringBootApplication
 @OpenAPIDefinition
 @EnableScheduling
 @EnableCaching
+@EnableRabbit
 // @EnableEurekaServer //!!! OSTAVITI ZA TESTIRANJE !!!
 public class OnlyBunsApplication {
 

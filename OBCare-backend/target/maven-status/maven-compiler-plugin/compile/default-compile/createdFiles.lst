@@ -1,0 +1,7 @@
+com\example\obcare\config\SwaggerConfig.class
+com\example\obcare\config\RabbitMQConfig.class
+com\example\obcare\service\LocationSenderService.class
+com\example\obcare\controller\LocationController.class
+com\example\obcare\repository\LocationRepository.class
+com\example\obcare\model\LocationMessage.class
+com\example\obcare\OBCareApplication.class
