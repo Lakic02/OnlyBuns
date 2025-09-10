@@ -50,12 +50,13 @@ export default {
       addressLongitude: null,
       addressSource: null,
       addressLayer: null,
-      loggedInUserId: null
+      loggedInUserId: null,
+      careLocations: []
     };
   },
   mounted() {
     // Sačekamo da dobijemo user-a i da mapa bude ready, pa tek onda inicijalizujemo layer-e i geokodiramo
-    Promise.all([this.getLoggedUser(), this.waitForMapReady()])
+    Promise.all([this.getLoggedUser(),this.getCareLocations(), this.waitForMapReady()])
       .then(() => {
         // mapa je spremna (ili smo timeout-ovali) — napravimo layer-e i evente
         this.initCircleLayer();
@@ -131,6 +132,29 @@ export default {
       }
     },
 
+    async getCareLocations() {
+      try {
+        const response = await axios.get("http://localhost:8081/api/messages", {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
+        this.careLocations = response.data;
+        
+        
+        this.careLocations = this.careLocations.filter(loc => {
+          const distance = this.calculateDistance(
+          this.userLatitude, this.userLongitude,
+          loc.latitude, loc.longitude,
+          );
+        return distance <= this.radius; // vraća samo one unutar radiusa
+        });
+        console.log("Fetched care locations:", this.careLocations);
+        this.updateMarkers();
+      } catch (error) {
+        console.error("Error fetching care locations:", error);
+      }
+    },
     async geocodeAddress() {
       if (!this.userAddress) {
         this.updateCenterAndCircle();
@@ -192,9 +216,9 @@ export default {
           this.userLatitude, this.userLongitude,
           post.latitude, post.longitude,
           console.log('user id from POSTS: ' + post.account.id),
-      );
-      return distance <= this.radius; // vraća samo one unutar radiusa
-      });
+          );
+        return distance <= this.radius; // vraća samo one unutar radiusa
+        });
 
         this.updateMarkers();
         console.log("Fetched posts:", this.posts);
@@ -312,17 +336,20 @@ export default {
 
     increaseRadius() {
       this.radius += 1;
+      this.getCareLocations();
       this.drawCircle();
+      this.fetchPosts();
       this.updateMarkers();
-      this.fetchPosts(); // ponovo fetch-ujemo postove da bismo uključili nove unutar većeg radiusa
+      // ponovo fetch-ujemo postove da bismo uključili nove unutar većeg radiusa
     },
 
     decreaseRadius() {
       if (this.radius > 1) {
         this.radius -= 1;
+        this.getCareLocations();
         this.drawCircle();
-        this.updateMarkers();
-        this.fetchPosts(); // ponovo fetch-ujemo postove da bismo uključili nove unutar manjeg radiusa
+        this.fetchPosts();
+        this.updateMarkers(); // ponovo fetch-ujemo postove da bismo uključili nove unutar manjeg radiusa
       }
     },
 
@@ -347,6 +374,14 @@ export default {
           fromLonLat([post.longitude, post.latitude]), post.imagePath, post.id
         );
         console.log('Added marker for post at:', post.latitude, post.longitude);
+      });
+
+      this.careLocations.forEach(loc => {
+        console.log('Care location add id: ', loc);
+        this.$refs.mapComponent.addCareMarker(
+          fromLonLat([loc.longitude, loc.latitude]), loc.id, loc.description
+        );
+        console.log('Added marker for care location at:', loc.latitude, loc.longitude);
       });
     },
 

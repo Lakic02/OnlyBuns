@@ -15,6 +15,7 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import { Icon, Style, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
 import bluePin from '@/images/bluepin.png';
+import greenPin from '@/images/greenPin.png';
 import axios from 'axios';
 
 
@@ -98,6 +99,11 @@ export default {
             // Emituje event ka parent komponenti
             this.$router.push({ name: 'PostDetails', params: { postId } });
           }
+          const description = feature.get('description');
+          if (description) {
+            console.log('Care location clicked with description:', description);
+            alert(`Care Location: ${description}`);
+          }
         });
       });
     },
@@ -152,6 +158,36 @@ export default {
     setMarkerUpdateEnabled(enabled) {
       this.isMarkerUpdateEnabled = enabled;
     },
+
+    addCareMarker(coordinate, careId = null, description = null) {
+      const marker = new Feature({
+        geometry: new Point(coordinate),
+      });
+
+      marker.setStyle(
+        new Style({
+          image: new Icon({
+            src: greenPin, // koristi drugu ikonicu
+            scale: 0.09,
+            anchor: [0.5, 1],
+          }),
+        })
+      );
+
+      if (careId) {
+        marker.set('careId', careId);
+      }
+
+      if (description) {
+        marker.set('description', description);
+      }
+
+      this.vectorSource.addFeature(marker);
+    },
+
+
+
+
   },
 };
 </script>
