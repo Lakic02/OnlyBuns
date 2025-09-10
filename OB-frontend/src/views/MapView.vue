@@ -122,6 +122,7 @@ export default {
               this.userAddress = address || '';
             }
             console.log('Address: ' + this.userAddress, response.data);
+            this.getCareLocations();
           }
         } catch (error) {
           console.error('Failed to decode token or fetch account:', error);
@@ -185,6 +186,7 @@ export default {
           // Centriraj view i iscrtaj krug
           this.updateCenterAndCircle();
           // Osveži markere (postovi)
+          this.getCareLocations();
           this.updateMarkers();
         } else {
           console.warn("Adresa nije pronađena, koristi se default lokacija.");
