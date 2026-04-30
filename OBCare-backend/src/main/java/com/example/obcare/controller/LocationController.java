@@ -1,6 +1,6 @@
 package com.example.obcare.controller;
 
-import com.example.obcare.model.LocationMessage;
+import com.example.obcare.domain.LocationMessage;
 import com.example.obcare.service.LocationSenderService;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,6 +1,6 @@
 package com.example.obcare.repository;
 
-import com.example.obcare.model.LocationMessage;
+import com.example.obcare.domain.LocationMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

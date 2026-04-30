@@ -1,6 +1,6 @@
 package com.example.obcare.service;
 
-import com.example.obcare.model.LocationMessage;
+import com.example.obcare.domain.LocationMessage;
 import com.example.obcare.repository.LocationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

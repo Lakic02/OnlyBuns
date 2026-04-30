@@ -1,4 +1,4 @@
-package com.example.obcare.model;
+package com.example.obcare.domain;
 
 import jakarta.persistence.*;
 
