@@ -33,7 +33,7 @@ scrape_configs:
 #   - url: https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push
 #     basic_auth:
 #       username: 1966932
-#       password: glc_eyJvIjoiMTMwNTE1MCIsIm4iOiJzdGFjay0xMTI0OTQxLWFsbG95LXByb21ldGhldXMtZ3JhZmFuYSIsImsiOiI0OXc2MDE4ekFQT2tadjlCRzYzcktyMmgiLCJtIjp7InIiOiJwcm9kLWV1LXdlc3QtMiJ9fQ==
+#       password: YOUR_GRAFANA_API_KEY_HERE
 # scrape_configs:
 #   - job_name: node
 #     static_configs:
